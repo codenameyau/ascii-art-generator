@@ -1,0 +1,24 @@
+Ascii Art Generator Update Report
+Update Report Number: 01
+
+------------
+Last Update:	6-13-2012
+Version Num:	Development Stage 0.1
+------------
+
+-----------
+Version 0.1
+  6-13-2012
+   11:20 AM
+-----------
+- Started graphical user interface layout
+- Finished creating main graphical user interface layout
+- Started section for event handling
+- Enabled file browser to popup on bitmap button click (not functional yet)
+- Started button conversion working with sample statue of liberty image
+- Setted default font size of 3 for ascii art
+- Enabled user-input for height and width for rows and columns
+- Created dialog alert for invalid height and width
+- Adjusted wxSlider for zoom interval of font size from [2-9]
+- Created repository for asciiart project
+- Created updates.txt to log project updates
