@@ -11,11 +11,13 @@ class AsciiArtFrame(wx.Frame):
         kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX |\
                 wx.SYSTEM_MENU | wx.SIMPLE_BORDER | wx.RESIZE_BORDER | wx.CLIP_CHILDREN
         wx.Frame.__init__(self, *args, **kwds)
-        
+        self.SetMinSize((338,700))
         # Resources
         self.ImageSource = "blank.png"
+        self.ImagePreview = wx.Bitmap(self.ImageSource, wx.BITMAP_TYPE_ANY)
         self.Ascii_Width  = 100
         self.Ascii_Height = 100
+        self.ImageIsLoaded = False
     
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
@@ -45,10 +47,12 @@ class AsciiArtFrame(wx.Frame):
         ascii_Menu.Append(wx.NewId(), "About", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Help")
         self.SetMenuBar(self.ascii_menu)
-        # Menu Bar end
+        # Widgets
         self.status = self.CreateStatusBar(1, 0)
         self.panel_1 = wx.Panel(self, -1)
-        self.bitmap_preview = wx.BitmapButton(self.panel_1, -1, wx.Bitmap(self.ImageSource, wx.BITMAP_TYPE_ANY))
+        self.bitmap_button = wx.BitmapButton(self.panel_1, -1, self.ImagePreview)
+        self.label_grayscale = wx.StaticText(self.panel_1, -1, "Grayscale Preview")
+        self.tb_grayscale = wx.ToggleButton(self.panel_1, -1, "Off")
         self.label_custom = wx.StaticText(self.panel_1, -1, "Custom Characters")
         self.tb_custom = wx.ToggleButton(self.panel_1, -1, "Off")
         self.label_dimension = wx.StaticText(self.panel_1, -1, "Auto Proportions")
@@ -86,9 +90,12 @@ class AsciiArtFrame(wx.Frame):
         # Ascii Resources
         self.Ascii_Font = self.slider_zoom.GetValue()
         
-        self.bitmap_preview.SetToolTipString("Click to open new image")
-        self.bitmap_preview.SetSize(self.bitmap_preview.GetBestSize())
-        self.bitmap_preview.SetDefault()
+        self.bitmap_button.SetToolTipString("Click to open new image")
+        self.bitmap_button.SetSize(self.bitmap_button.GetBestSize())
+        self.bitmap_button.SetDefault()
+        self.label_grayscale.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
+        self.tb_grayscale.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
+        self.tb_grayscale.SetToolTipString("Switches image color of preview to grayscale")
         self.label_custom.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_custom.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_custom.SetToolTipString("Enables use of custom characters for generation")
@@ -113,15 +120,17 @@ class AsciiArtFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_4 = wx.BoxSizer(wx.VERTICAL)
         sizer_5 = wx.BoxSizer(wx.VERTICAL)
-        grid_settings = wx.GridSizer(4, 2, 0, 0)
-        sizer_3.Add(self.bitmap_preview, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL | wx.FIXED_MINSIZE, 0)
-        grid_settings.Add(self.label_custom, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+        grid_settings = wx.GridSizer(6, 2, 0, 0)
+        sizer_3.Add(self.bitmap_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 6)
+        grid_settings.Add(self.label_grayscale, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
+        grid_settings.Add(self.tb_grayscale, 0, wx.Top | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_settings.Add(self.label_custom, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         grid_settings.Add(self.tb_custom, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_settings.Add(self.label_dimension, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+        grid_settings.Add(self.label_dimension, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         grid_settings.Add(self.tb_dimension, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_settings.Add(self.label_height, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+        grid_settings.Add(self.label_height, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         grid_settings.Add(self.et_height, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_settings.Add(self.label_width, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+        grid_settings.Add(self.label_width, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         grid_settings.Add(self.et_width, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
         sizer_3.Add(grid_settings, 1, wx.EXPAND, 0)
         sizer_1.Add(self.static_line_1, 0, wx.EXPAND, 0)
@@ -142,12 +151,12 @@ class AsciiArtFrame(wx.Frame):
     def EnableHandlers(self):
         
         self.Bind(wx.EVT_BUTTON, self.CreateAscii, self.b_start)
-        self.Bind(wx.EVT_BUTTON, self.OpenFileBrowser, self.bitmap_preview)
+        self.Bind(wx.EVT_BUTTON, self.OpenFileBrowser, self.bitmap_button)
         self.Bind(wx.EVT_SCROLL, self.SliderZoom, self.slider_zoom)
     
     def NewPreview(self):
         
-        self.bitmap_preview.SetBitmapSelected(wx.BitmapFromImage(self.ImageSource))
+        self.bitmap_button.SetBitmapSelected(wx.BitmapFromImage(self.ImageSource))
     
     #### --- DIALOG BOXES --- ####
     
@@ -157,6 +166,12 @@ class AsciiArtFrame(wx.Frame):
         InvalidDialog = wx.MessageDialog(None, "You must enter a valid height and width.", 
                                          "Invalid Start", wx.OK | wx.ICON_EXCLAMATION)
         InvalidDialog.ShowModal()
+    
+    def NoImageDialog(self):
+        
+        NoImageDialog = wx.MessageDialog(None, "You must open an image file first.", 
+                                         "Invalid Start", wx.OK | wx.ICON_EXCLAMATION)
+        NoImageDialog.ShowModal()
     
     def InvalidImageDialog(self):
         
@@ -170,8 +185,7 @@ class AsciiArtFrame(wx.Frame):
         wildcard = "Image Files |*.jpg;*.png;*.bmp|" \
                  "JPEG (*.jpg)|*.jpg|" \
                  "PNG (*.png)|*.png|" \
-                 "BMP (*.bmp)|*.bmp|" \
-                 "All Files (*.*)|*.*"
+                 "BMP (*.bmp)|*.bmp"
         filedialog = wx.FileDialog (
                                 self, message="Choose a file",
                                 defaultFile="", wildcard=wildcard,
@@ -180,13 +194,16 @@ class AsciiArtFrame(wx.Frame):
         try:
             if filedialog.ShowModal() == wx.ID_OK:
                 self.ImageSource = filedialog.GetPath()
-                self.bitmap_preview.SetBitmapLabel(wx.Bitmap(self.ImageSource))
+                self.ImageIsLoaded = True
                 
                 # !!! Image smart resizer needed
+                img = wx.Image(self.ImageSource)
+                img = img.ConvertToGreyscale()
+                self.ImagePreview = wx.BitmapFromImage(img)
+                self.bitmap_button.SetBitmapLabel(self.ImagePreview)
                 # !!! Image navigation needed
                 
-                print self.ImageSource
-        except Exception:
+        except NameError:
             self.InvalidImageDialog()
         finally:
             filedialog.Destroy()
@@ -214,10 +231,12 @@ class AsciiArtFrame(wx.Frame):
         
         # Open image and resize
         try:
+            if self.ImageIsLoaded == False:
+                raise RuntimeError
             self.Ascii_Height = int(self.et_height.GetValue())
             self.Ascii_Width  = int(self.et_width.GetValue())
-            im = Image.open(r"images/liberty.jpg")
-            im = im.resize((self.Ascii_Width, self.Ascii_Height), Image.BILINEAR)
+            im = Image.open(self.ImageSource)
+            im = im.resize((self.Ascii_Width, self.Ascii_Height), Image.ANTIALIAS)
             im = im.convert("L") # convert to mono
             
             # working with pixels, build up string
@@ -230,7 +249,8 @@ class AsciiArtFrame(wx.Frame):
                     str = str + possibles[random.randint(0,len(possibles)-1)]
                 str = str + "\n"
             self.et_asciiArea.SetValue(str)
-            
+        except RuntimeError:
+            self.NoImageDialog()
         except ValueError:
             self.InvalidInputDialog()
         except Exception:

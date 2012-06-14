@@ -1,10 +1,26 @@
 Ascii Art Generator Update Report
-Update Report Number: 02
+Update Report Number: 03
 
 ------------
-Last Update:	6-13-2012
-Version Num:	Development Stage 0.19
+Last Update:	6-14-2012
+Version Num:	Development Stage 0.24
 ------------
+
+
+------------
+Version 0.24
+   6-14-2012
+     1:01 AM
+------------
+- Enabled image to ascii conversion after opening image via bitmap button
+- Created boolean value to allow conversion only when image is loaded
+- Throw an exception while trying to convert a non-loaded image
+- Removed All Files (*.*) filter when opening file browser
+- Added grayscale preview button to GUI layout
+- Image preview is grayscale until toggle button is functional
+- Adjusted layout for new button, cleaned up border spacing
+- Configurated minimum size of window
+
 
 ------------
 Version 0.19
