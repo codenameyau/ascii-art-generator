@@ -12,11 +12,11 @@ class AsciiArtFrame(wx.Frame):
                 wx.SYSTEM_MENU | wx.SIMPLE_BORDER | wx.RESIZE_BORDER | wx.CLIP_CHILDREN
         wx.Frame.__init__(self, *args, **kwds)
         
-        # Resource
-        ImageSource = "blank.png"
+        # Resources
+        self.ImageSource = "blank.png"
         self.Ascii_Width  = 100
-        self.Ascii_Height = 90
-        
+        self.Ascii_Height = 100
+    
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
         ascii_Menu = wx.Menu()
@@ -38,7 +38,7 @@ class AsciiArtFrame(wx.Frame):
         ascii_Menu.Append(wx.NewId(), "Zoom Reset", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "View")
         ascii_Menu = wx.Menu()
-        ascii_Menu.Append(wx.NewId(), "Set Characters", "", wx.ITEM_NORMAL)
+        ascii_Menu.Append(wx.NewId(), "Custom Characters", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Settings")
         ascii_Menu = wx.Menu()
         ascii_Menu.Append(wx.NewId(), "Help", "", wx.ITEM_NORMAL)
@@ -48,7 +48,7 @@ class AsciiArtFrame(wx.Frame):
         # Menu Bar end
         self.status = self.CreateStatusBar(1, 0)
         self.panel_1 = wx.Panel(self, -1)
-        self.bitmap_preview = wx.BitmapButton(self.panel_1, -1, wx.Bitmap(ImageSource, wx.BITMAP_TYPE_ANY))
+        self.bitmap_preview = wx.BitmapButton(self.panel_1, -1, wx.Bitmap(self.ImageSource, wx.BITMAP_TYPE_ANY))
         self.label_custom = wx.StaticText(self.panel_1, -1, "Custom Characters")
         self.tb_custom = wx.ToggleButton(self.panel_1, -1, "Off")
         self.label_dimension = wx.StaticText(self.panel_1, -1, "Auto Proportions")
@@ -61,16 +61,18 @@ class AsciiArtFrame(wx.Frame):
         self.b_start = wx.Button(self.panel_1, wx.ID_OPEN, "Start")
         self.static_line_2 = wx.StaticLine(self.panel_1, -1)
         self.label_scale = wx.StaticText(self.panel_1, -1, "Zoom")
-        self.slider_zoom = wx.Slider(self.panel_1, -1, 9, 2, 9, style=wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_TOP)
-        self.et_asciiArea = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_MULTILINE | wx.HSCROLL | wx.TE_RICH | wx.TE_RICH2 | wx.TE_NOHIDESEL)
-
+        self.slider_zoom = wx.Slider(self.panel_1, -1, 9, 2, 9, size=(120,-1), style=wx.SL_HORIZONTAL)
+        self.et_asciiArea = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB |\
+                                         wx.TE_MULTILINE | wx.HSCROLL | wx.TE_RICH | wx.TE_RICH2 | wx.TE_NOHIDESEL)
+        
+        # Begin Methods
         self.__set_properties()
-        self.__do_layout()        
+        self.__do_layout()
         self.EnableHandlers()
 
     def __set_properties(self):
-        # begin wxGlade: AsciiArtFrame.__set_properties
-        self.SetTitle("Ascii Art")
+        
+        self.SetTitle("Ascii Art Generator")
         _icon = wx.EmptyIcon()
         _icon.CopyFromBitmap(wx.Bitmap("icon.png", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
@@ -80,6 +82,10 @@ class AsciiArtFrame(wx.Frame):
         status_fields = ["New"]
         for i in range(len(status_fields)):
             self.status.SetStatusText(status_fields[i], i)
+        
+        # Ascii Resources
+        self.Ascii_Font = self.slider_zoom.GetValue()
+        
         self.bitmap_preview.SetToolTipString("Click to open new image")
         self.bitmap_preview.SetSize(self.bitmap_preview.GetBestSize())
         self.bitmap_preview.SetDefault()
@@ -97,10 +103,9 @@ class AsciiArtFrame(wx.Frame):
         self.b_start.SetFont(wx.Font(11, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.b_start.SetToolTipString("Generates ascii art from the image loaded")
         self.label_scale.SetFont(wx.Font(11, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.label_scale.SetToolTipString("Scroll slider to change zoom of the ascii art")
-        self.et_asciiArea.SetFont(wx.Font(3, wx.MODERN, wx.NORMAL, wx.NORMAL))
-        # end wxGlade
-
+        self.label_scale.SetToolTipString("Scroll slider to change the font of the ascii characters")
+        self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
+        
     def __do_layout(self):
         # begin wxGlade: AsciiArtFrame.__do_layout
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -122,8 +127,8 @@ class AsciiArtFrame(wx.Frame):
         sizer_1.Add(self.static_line_1, 0, wx.EXPAND, 0)
         sizer_4.Add(self.b_start, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 15)
         sizer_4.Add(self.static_line_2, 0, wx.EXPAND, 0)
-        sizer_5.Add(self.label_scale, 0, wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 15)
-        sizer_5.Add(self.slider_zoom, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_5.Add(self.label_scale, 0, wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 20)
+        sizer_5.Add(self.slider_zoom, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 20)
         sizer_4.Add(sizer_5, 1, wx.EXPAND, 0)
         sizer_1.Add(sizer_4, 1, wx.EXPAND, 0)
         sizer_3.Add(sizer_1, 1, wx.EXPAND, 0)
@@ -133,48 +138,59 @@ class AsciiArtFrame(wx.Frame):
         self.SetSizer(sizer_2)
         self.Layout()
         self.Centre()
-        # end wxGlade
     
     def EnableHandlers(self):
         
         self.Bind(wx.EVT_BUTTON, self.CreateAscii, self.b_start)
         self.Bind(wx.EVT_BUTTON, self.OpenFileBrowser, self.bitmap_preview)
+        self.Bind(wx.EVT_SCROLL, self.SliderZoom, self.slider_zoom)
     
     def NewPreview(self):
         
-        self.bitmap_preview.SetBitmapSelected(wx.BitmapFromImage(ImageSource))
+        self.bitmap_preview.SetBitmapSelected(wx.BitmapFromImage(self.ImageSource))
     
     #### --- DIALOG BOXES --- ####
     
     # InvalidInputDialog()
     def InvalidInputDialog(self):
         
-        InvalidDialog = wx.MessageDialog(None, "You must enter a valid height and width with an opened image.", 
-                                         "Invalid Start Operation", wx.OK | wx.ICON_EXCLAMATION)
+        InvalidDialog = wx.MessageDialog(None, "You must enter a valid height and width.", 
+                                         "Invalid Start", wx.OK | wx.ICON_EXCLAMATION)
         InvalidDialog.ShowModal()
     
+    def InvalidImageDialog(self):
+        
+        InvalidDialog = wx.MessageDialog(None, "The file you have selected is not an image file.", 
+                                         "Invalid File", wx.OK | wx.ICON_EXCLAMATION)
+        InvalidDialog.ShowModal()
+
     #### --- EVENT HANDLERS --- ####
-    
-    # OpenFileBrowser()
     def OpenFileBrowser(self, event):
         
-        wildcard = "Image Files | *.jpg;*.png;*.bmp |" \
-                    "JPEG (*.jpg) | *.jpg |" \
-                    "PNG (*.png) | *.png |" \
-                    "Bitmap (*.bmp) | *.bmp |" 
-        dialog = wx.FileDialog (
+        wildcard = "Image Files |*.jpg;*.png;*.bmp|" \
+                 "JPEG (*.jpg)|*.jpg|" \
+                 "PNG (*.png)|*.png|" \
+                 "BMP (*.bmp)|*.bmp|" \
+                 "All Files (*.*)|*.*"
+        filedialog = wx.FileDialog (
                                 self, message="Choose a file",
                                 defaultFile="", wildcard=wildcard,
-                                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                                style=wx.OPEN | wx.CHANGE_DIR
                                 )
         try:
-            if dialog.ShowModal() == wx.ID_OK:
-                paths = dialog.GetPaths()
+            if filedialog.ShowModal() == wx.ID_OK:
+                self.ImageSource = filedialog.GetPath()
+                self.bitmap_preview.SetBitmapLabel(wx.Bitmap(self.ImageSource))
+                
+                # !!! Image smart resizer needed
+                # !!! Image navigation needed
+                
+                print self.ImageSource
         except Exception:
-            pass
-        dialog.Destroy()
-    
-    # CreateAscii()
+            self.InvalidImageDialog()
+        finally:
+            filedialog.Destroy()
+        
     def CreateAscii(self, event):
         # Grayscale Tones
         grayscale = [
@@ -215,10 +231,17 @@ class AsciiArtFrame(wx.Frame):
                 str = str + "\n"
             self.et_asciiArea.SetValue(str)
             
-        except (ValueError, Exception):
+        except ValueError:
             self.InvalidInputDialog()
+        except Exception:
+            self.InvalidImageDialog()
+
+    def SliderZoom(self, event):
+        self.Ascii_Font = self.slider_zoom.GetValue()
+        self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
 
 # end of class AsciiArtFrame
+
 if __name__ == "__main__":
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()
