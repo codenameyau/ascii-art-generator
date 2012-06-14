@@ -1,16 +1,32 @@
 Ascii Art Generator Update Report
-Update Report Number: 01
+Update Report Number: 02
 
 ------------
 Last Update:	6-13-2012
-Version Num:	Development Stage 0.1
+Version Num:	Development Stage 0.19
 ------------
 
------------
-Version 0.1
-  6-13-2012
-   11:20 AM
------------
+------------
+Version 0.19
+   6-13-2012
+    11:55 PM
+------------
+- Resized borders and size for start button and zoom slider
+- Enabled zoom slider functionality to change font size of text area
+- Changed title of application to 'Ascii Art Generator'
+- Updated and included exception handling for event functions
+- Included alert dialog arising from opening invalid files
+- Fixed file browser's image filetype (.jpg .png .bmp .*) filters
+- Enabled file browser to return path of selected file
+- Enabled preview image to change into the selected file
+- Cleaned up class variables for class/methods (i.e. self.ImageSource)
+
+
+------------
+Version 0.10
+   6-13-2012
+    11:20 AM
+------------
 - Started graphical user interface layout
 - Finished creating main graphical user interface layout
 - Started section for event handling
