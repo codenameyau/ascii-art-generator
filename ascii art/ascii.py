@@ -65,7 +65,7 @@ class AsciiArtFrame(wx.Frame):
         self.b_start = wx.Button(self.panel_1, wx.ID_OPEN, "Start")
         self.static_line_2 = wx.StaticLine(self.panel_1, -1)
         self.label_scale = wx.StaticText(self.panel_1, -1, "Zoom")
-        self.slider_zoom = wx.Slider(self.panel_1, -1, 9, 2, 9, size=(120,-1), style=wx.SL_HORIZONTAL)
+        self.slider_zoom = wx.Slider(self.panel_1, -1, 3, 2, 8, size=(120,-1), style=wx.SL_HORIZONTAL)
         self.et_asciiArea = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB |\
                                          wx.TE_MULTILINE | wx.HSCROLL | wx.TE_RICH | wx.TE_RICH2 | wx.TE_NOHIDESEL)
         
@@ -136,8 +136,8 @@ class AsciiArtFrame(wx.Frame):
         sizer_1.Add(self.static_line_1, 0, wx.EXPAND, 0)
         sizer_4.Add(self.b_start, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 15)
         sizer_4.Add(self.static_line_2, 0, wx.EXPAND, 0)
-        sizer_5.Add(self.label_scale, 0, wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 20)
-        sizer_5.Add(self.slider_zoom, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 20)
+        sizer_5.Add(self.label_scale, 0, wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 10)
+        sizer_5.Add(self.slider_zoom, 0, wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_4.Add(sizer_5, 1, wx.EXPAND, 0)
         sizer_1.Add(sizer_4, 1, wx.EXPAND, 0)
         sizer_3.Add(sizer_1, 1, wx.EXPAND, 0)
@@ -195,35 +195,49 @@ class AsciiArtFrame(wx.Frame):
             if filedialog.ShowModal() == wx.ID_OK:
                 self.ImageSource = filedialog.GetPath()
                 self.ImageIsLoaded = True
-                
-                # !!! Image smart resizer needed
                 img = wx.Image(self.ImageSource)
-                img = img.ConvertToGreyscale()
+                
+                # Preview Image Resizer 
+                if img.GetHeight() > img.GetWidth():
+                    baseheight = 280
+                    h_percent = (baseheight / float(img.GetHeight()))
+                    basewidth = img.GetWidth() * h_percent
+                else:
+                    basewidth = 280
+                    w_percent = (basewidth / float(img.GetWidth()))
+                    baseheight = img.GetHeight() * w_percent
+                    
+                img = img.Rescale(basewidth, baseheight, wx.IMAGE_QUALITY_HIGH)    
                 self.ImagePreview = wx.BitmapFromImage(img)
                 self.bitmap_button.SetBitmapLabel(self.ImagePreview)
+                w, h = self.GetSize()
+                self.SetSize((w+1,h+1))
                 # !!! Image navigation needed
+            else:
+                pass
                 
-        except NameError:
+        except Exception:
             self.InvalidImageDialog()
         finally:
             filedialog.Destroy()
+            self.Refresh()
         
     def CreateAscii(self, event):
         # Grayscale Tones
         grayscale = [
                     " ",
                     " ",
-                    "-",
-                    ".`",
+                    ".",
                     "'",
+                    "`",
                     ":",
+                    "~",
                     "=",
                     "+",
-                    "EC",
-                    "H$",
-                    "#",
-                    "&",
-                    "%"
+                    "l",
+                    "C",
+                    "E",
+                    "H"
                     ]
         
         # Use bisect class for luminosity values

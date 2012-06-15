@@ -1,16 +1,29 @@
 Ascii Art Generator Update Report
-Update Report Number: 03
+Update Report Number: 04
 
 ------------
 Last Update:	6-14-2012
-Version Num:	Development Stage 0.24
+Version Num:	Development Stage 0.27
 ------------
+
+
+------------
+Version 0.27
+   6-15-2012
+    12:50 AM
+------------
+- Corrected and enabled proper scaling for image preview
+- Updated and corrected ascii luminosity shaders
+- Updated slider to start zoom at 3 and changed max to 8
+- Adjusted window to grow 1 px whenever an image is loaded
+- Adjusted window causes bitmap button to automatically resize to preview size
+- Added new sample images for testing
 
 
 ------------
 Version 0.24
    6-14-2012
-     1:01 AM
+     1:01 PM
 ------------
 - Enabled image to ascii conversion after opening image via bitmap button
 - Created boolean value to allow conversion only when image is loaded
