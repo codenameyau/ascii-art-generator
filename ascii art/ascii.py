@@ -11,13 +11,20 @@ class AsciiArtFrame(wx.Frame):
         kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX |\
                 wx.SYSTEM_MENU | wx.SIMPLE_BORDER | wx.RESIZE_BORDER | wx.CLIP_CHILDREN
         wx.Frame.__init__(self, *args, **kwds)
-        self.SetMinSize((338,700))
+        self.SetMinSize((320,700))
+        self.SetBackgroundStyle(wx.BG_STYLE_SYSTEM)
+        
+        # Blank Image
+        self.blank_image = wx.EmptyBitmapRGBA(280,280,255,255,255)
+        self.ImagePreview = self.blank_image
+        self.ImageSource = self.blank_image
+        self.ImageGrayscale = self.blank_image
+        
         # Resources
-        self.ImageSource = "blank.png"
-        self.ImagePreview = wx.Bitmap(self.ImageSource, wx.BITMAP_TYPE_ANY)
         self.Ascii_Width  = 100
         self.Ascii_Height = 100
         self.ImageIsLoaded = False
+        self.ImagePath = ""
     
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
@@ -90,7 +97,7 @@ class AsciiArtFrame(wx.Frame):
         # Ascii Resources
         self.Ascii_Font = self.slider_zoom.GetValue()
         
-        self.bitmap_button.SetToolTipString("Click to open new image")
+        self.bitmap_button.SetToolTipString("Click to open a new image")
         self.bitmap_button.SetSize(self.bitmap_button.GetBestSize())
         self.bitmap_button.SetDefault()
         self.label_grayscale.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
@@ -98,10 +105,10 @@ class AsciiArtFrame(wx.Frame):
         self.tb_grayscale.SetToolTipString("Switches image color of preview to grayscale")
         self.label_custom.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_custom.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.tb_custom.SetToolTipString("Enables use of custom characters for generation")
+        self.tb_custom.SetToolTipString("Enables custom characters for ascii generation")
         self.label_dimension.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_dimension.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.tb_dimension.SetToolTipString("Generates ascii size based on best-fit proportions")
+        self.tb_dimension.SetToolTipString("Generates ascii height and width based on best-fit proportions")
         self.label_height.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.et_height.SetToolTipString("Enter lines of height for ascii generation")
         self.label_width.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
@@ -114,6 +121,7 @@ class AsciiArtFrame(wx.Frame):
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
         
     def __do_layout(self):
+        
         # begin wxGlade: AsciiArtFrame.__do_layout
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
@@ -153,10 +161,7 @@ class AsciiArtFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.CreateAscii, self.b_start)
         self.Bind(wx.EVT_BUTTON, self.OpenFileBrowser, self.bitmap_button)
         self.Bind(wx.EVT_SCROLL, self.SliderZoom, self.slider_zoom)
-    
-    def NewPreview(self):
-        
-        self.bitmap_button.SetBitmapSelected(wx.BitmapFromImage(self.ImageSource))
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleGrayscale, self.tb_grayscale)
     
     #### --- DIALOG BOXES --- ####
     
@@ -193,9 +198,9 @@ class AsciiArtFrame(wx.Frame):
                                 )
         try:
             if filedialog.ShowModal() == wx.ID_OK:
-                self.ImageSource = filedialog.GetPath()
+                self.ImagePath = filedialog.GetPath()
                 self.ImageIsLoaded = True
-                img = wx.Image(self.ImageSource)
+                img = wx.Image(self.ImagePath)
                 
                 # Preview Image Resizer 
                 if img.GetHeight() > img.GetWidth():
@@ -207,12 +212,15 @@ class AsciiArtFrame(wx.Frame):
                     w_percent = (basewidth / float(img.GetWidth()))
                     baseheight = img.GetHeight() * w_percent
                     
-                img = img.Rescale(basewidth, baseheight, wx.IMAGE_QUALITY_HIGH)    
-                self.ImagePreview = wx.BitmapFromImage(img)
+                img = img.Rescale(basewidth, baseheight, wx.IMAGE_QUALITY_HIGH)
+                # Acquire original and grayscale version
+                self.ImageSource = img
+                self.ImageGrayscale = img.ConvertToGreyscale()
+                if self.tb_grayscale.GetValue() == True:
+                    self.ImagePreview = wx.BitmapFromImage(self.ImageGrayscale)
+                else:
+                    self.ImagePreview = wx.BitmapFromImage(self.ImageSource)
                 self.bitmap_button.SetBitmapLabel(self.ImagePreview)
-                w, h = self.GetSize()
-                self.SetSize((w+1,h+1))
-                # !!! Image navigation needed
             else:
                 pass
                 
@@ -220,7 +228,6 @@ class AsciiArtFrame(wx.Frame):
             self.InvalidImageDialog()
         finally:
             filedialog.Destroy()
-            self.Refresh()
         
     def CreateAscii(self, event):
         # Grayscale Tones
@@ -249,7 +256,7 @@ class AsciiArtFrame(wx.Frame):
                 raise RuntimeError
             self.Ascii_Height = int(self.et_height.GetValue())
             self.Ascii_Width  = int(self.et_width.GetValue())
-            im = Image.open(self.ImageSource)
+            im = Image.open(self.ImagePath)
             im = im.resize((self.Ascii_Width, self.Ascii_Height), Image.ANTIALIAS)
             im = im.convert("L") # convert to mono
             
@@ -273,6 +280,23 @@ class AsciiArtFrame(wx.Frame):
     def SliderZoom(self, event):
         self.Ascii_Font = self.slider_zoom.GetValue()
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
+        
+    def ToggleGrayscale(self, event):
+        if self.tb_grayscale.GetValue() == True:
+            self.tb_grayscale.SetLabel("On")
+            try:
+                self.ImageGrayscale = self.ImageGrayscale.ConvertToGreyscale()
+                self.ImagePreview = wx.BitmapFromImage(self.ImageGrayscale)
+                self.bitmap_button.SetBitmapLabel(self.ImagePreview)
+            except Exception:
+                pass
+        elif self.tb_grayscale.GetValue() == False:
+            try:
+                self.tb_grayscale.SetLabel("Off")
+                self.ImagePreview = wx.BitmapFromImage(self.ImageSource)
+                self.bitmap_button.SetBitmapLabel(self.ImagePreview)
+            except Exception:
+                pass
 
 # end of class AsciiArtFrame
 

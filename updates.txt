@@ -1,10 +1,24 @@
 Ascii Art Generator Update Report
-Update Report Number: 04
+Update Report Number: 05
 
 ------------
-Last Update:	6-14-2012
-Version Num:	Development Stage 0.27
+Last Update:	6-16-2012
+Version Num:	Development Stage 0.30
 ------------
+
+
+------------
+Version 0.30
+   6-16-2012
+     6:15 PM
+------------
+- Removed 'blank.png' as default preview image
+- Added a program generated empty bitmap as the default preview image
+- Cleaned up unneccessary code and function definitions
+- Enabled toggle button text label during on/off states
+- Started recoding ascii generation from Image class to wx.Image class
+- Added several class properties for implementation for further functions
+- Enabled switching between grayscale to RGB images for preview
 
 
 ------------
@@ -17,7 +31,8 @@ Version 0.27
 - Updated slider to start zoom at 3 and changed max to 8
 - Adjusted window to grow 1 px whenever an image is loaded
 - Adjusted window causes bitmap button to automatically resize to preview size
-- Added new sample images for testing
+- Added new sample images for color, shading, and preview testing
+- Removed automatic size adjustment of bitmap button after image is loaded 
 
 
 ------------
