@@ -35,9 +35,11 @@ class AsciiArtFrame(wx.Frame):
         ascii_Menu.Append(wx.NewId(), "Close", "", wx.ITEM_NORMAL)
         ascii_Menu.Append(wx.NewId(), "Exit", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "File")
+        
         ascii_Menu = wx.Menu()
         ascii_Menu.Append(wx.NewId(), "Start", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Run")
+        
         ascii_Menu = wx.Menu()
         ascii_Menu.Append(wx.NewId(), "Full View", "", wx.ITEM_NORMAL)
         ascii_Menu.Append(wx.NewId(), "View Image", "", wx.ITEM_NORMAL)
@@ -46,14 +48,17 @@ class AsciiArtFrame(wx.Frame):
         ascii_Menu.Append(wx.NewId(), "Zoom Out", "", wx.ITEM_NORMAL)
         ascii_Menu.Append(wx.NewId(), "Zoom Reset", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "View")
+        
         ascii_Menu = wx.Menu()
         ascii_Menu.Append(wx.NewId(), "Custom Characters", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Settings")
+        
         ascii_Menu = wx.Menu()
         ascii_Menu.Append(wx.NewId(), "Help", "", wx.ITEM_NORMAL)
         ascii_Menu.Append(wx.NewId(), "About", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Help")
         self.SetMenuBar(self.ascii_menu)
+        
         # Widgets
         self.status = self.CreateStatusBar(1, 0)
         self.panel_1 = wx.Panel(self, -1)
@@ -89,6 +94,7 @@ class AsciiArtFrame(wx.Frame):
         self.SetIcon(_icon)
         self.SetSize((1100, 700))
         self.status.SetStatusWidths([-1])
+        
         # statusbar fields
         status_fields = ["New"]
         for i in range(len(status_fields)):
@@ -128,6 +134,7 @@ class AsciiArtFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_4 = wx.BoxSizer(wx.VERTICAL)
         sizer_5 = wx.BoxSizer(wx.VERTICAL)
+        
         grid_settings = wx.GridSizer(6, 2, 0, 0)
         sizer_3.Add(self.bitmap_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 6)
         grid_settings.Add(self.label_grayscale, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
@@ -140,6 +147,7 @@ class AsciiArtFrame(wx.Frame):
         grid_settings.Add(self.et_height, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_settings.Add(self.label_width, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         grid_settings.Add(self.et_width, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
+        
         sizer_3.Add(grid_settings, 1, wx.EXPAND, 0)
         sizer_1.Add(self.static_line_1, 0, wx.EXPAND, 0)
         sizer_4.Add(self.b_start, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 15)
@@ -167,22 +175,38 @@ class AsciiArtFrame(wx.Frame):
     
     # InvalidInputDialog()
     def InvalidInputDialog(self):
-        
         InvalidDialog = wx.MessageDialog(None, "You must enter a valid height and width.", 
-                                         "Invalid Start", wx.OK | wx.ICON_EXCLAMATION)
+                                         "Invalid Size", wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
         InvalidDialog.ShowModal()
+        InvalidDialog.Destroy()
     
     def NoImageDialog(self):
-        
         NoImageDialog = wx.MessageDialog(None, "You must open an image file first.", 
-                                         "Invalid Start", wx.OK | wx.ICON_EXCLAMATION)
+                                         "Invalid Image", wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
         NoImageDialog.ShowModal()
+        NoImageDialog.Destroy()
     
     def InvalidImageDialog(self):
+        InvalidImageDialog = wx.MessageDialog(None, "The file you have selected is not an image file.", 
+                                         "Invalid File", wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
+        InvalidImageDialog.ShowModal()
+        InvalidImageDialog.Destroy()
         
-        InvalidDialog = wx.MessageDialog(None, "The file you have selected is not an image file.", 
-                                         "Invalid File", wx.OK | wx.ICON_EXCLAMATION)
-        InvalidDialog.ShowModal()
+    def LargeSizeDialog(self):
+        LargeSizeDialog = wx.MessageDialog(None, "The ascii image may take a while to generate.\nDo you want to continue?", 
+                                           "Large Conversion Size", wx.YES_NO | wx.YES_DEFAULT | 
+                                           wx.CENTER | wx.ICON_INFORMATION)
+        result = LargeSizeDialog.ShowModal()
+        LargeSizeDialog.Destroy()
+        return result      
+      
+    def GiantSizeDialog(self):
+        GiantSizeDialog = wx.MessageDialog(None, "The program may freeze or even crash.\nDo you want to continue?", 
+                                           "Large Conversion Size", wx.YES_NO | wx.YES_DEFAULT | 
+                                           wx.CENTER | wx.ICON_INFORMATION)
+        result = GiantSizeDialog.ShowModal()
+        GiantSizeDialog.Destroy()
+        return result
 
     #### --- EVENT HANDLERS --- ####
     def OpenFileBrowser(self, event):
@@ -231,6 +255,7 @@ class AsciiArtFrame(wx.Frame):
         
     def CreateAscii(self, event):
         # Grayscale Tones
+        # Switch from Image to wxImage class
         grayscale = [
                     " ",
                     " ",
@@ -250,15 +275,23 @@ class AsciiArtFrame(wx.Frame):
         # Use bisect class for luminosity values
         zonebounds = [21,42,63,84,105,126,147,168,189,210,231,252]
         
-        # Open image and resize
+        # Open image, convert to grayscale, and resize
         try:
             if self.ImageIsLoaded == False:
                 raise RuntimeError
+            
             self.Ascii_Height = int(self.et_height.GetValue())
             self.Ascii_Width  = int(self.et_width.GetValue())
-            im = Image.open(self.ImagePath)
+            size = self.Ascii_Height * self.Ascii_Width
+            if size > 2000000:
+                if self.GiantSizeDialog() == wx.ID_NO:
+                    raise AssertionError
+            elif size > 250000:
+                if self.LargeSizeDialog() == wx.ID_NO:
+                    raise AssertionError
+                
+            im = Image.open(self.ImagePath).convert("L")
             im = im.resize((self.Ascii_Width, self.Ascii_Height), Image.ANTIALIAS)
-            im = im.convert("L") # convert to mono
             
             # working with pixels, build up string
             str = ""
@@ -274,6 +307,8 @@ class AsciiArtFrame(wx.Frame):
             self.NoImageDialog()
         except ValueError:
             self.InvalidInputDialog()
+        except AssertionError:
+            pass
         except Exception:
             self.InvalidImageDialog()
 
@@ -291,8 +326,8 @@ class AsciiArtFrame(wx.Frame):
             except Exception:
                 pass
         elif self.tb_grayscale.GetValue() == False:
+            self.tb_grayscale.SetLabel("Off")
             try:
-                self.tb_grayscale.SetLabel("Off")
                 self.ImagePreview = wx.BitmapFromImage(self.ImageSource)
                 self.bitmap_button.SetBitmapLabel(self.ImagePreview)
             except Exception:
