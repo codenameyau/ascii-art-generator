@@ -77,7 +77,7 @@ class AsciiArtFrame(wx.Frame):
         self.b_start = wx.Button(self.panel_1, wx.ID_OPEN, "Start")
         self.static_line_2 = wx.StaticLine(self.panel_1, -1)
         self.label_scale = wx.StaticText(self.panel_1, -1, "Zoom")
-        self.slider_zoom = wx.Slider(self.panel_1, -1, 3, 2, 8, size=(120,-1), style=wx.SL_HORIZONTAL)
+        self.slider_zoom = wx.Slider(self.panel_1, -1, 2, 2, 7, size=(120,-1), style=wx.SL_HORIZONTAL)
         self.et_asciiArea = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB |\
                                          wx.TE_MULTILINE | wx.HSCROLL | wx.TE_RICH | wx.TE_RICH2 | wx.TE_NOHIDESEL)
         
@@ -170,6 +170,7 @@ class AsciiArtFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OpenFileBrowser, self.bitmap_button)
         self.Bind(wx.EVT_SCROLL, self.SliderZoom, self.slider_zoom)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleGrayscale, self.tb_grayscale)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProportions, self.tb_dimension)
     
     #### --- DIALOG BOXES --- ####
     
@@ -254,8 +255,6 @@ class AsciiArtFrame(wx.Frame):
             filedialog.Destroy()
         
     def CreateAscii(self, event):
-        # Grayscale Tones
-        # Switch from Image to wxImage class
         grayscale = [
                     " ",
                     " ",
@@ -263,17 +262,20 @@ class AsciiArtFrame(wx.Frame):
                     "'",
                     "`",
                     ":",
-                    "~",
+                    ";",
+                    "-",
                     "=",
                     "+",
                     "l",
+                    "J",
                     "C",
+                    "D",
                     "E",
-                    "H"
+                    "R"
                     ]
         
         # Use bisect class for luminosity values
-        zonebounds = [21,42,63,84,105,126,147,168,189,210,231,252]
+        zonebounds = [17,34,51,68,85,102,119,136,153,170,187,204,221,238,255]
         
         # Open image, convert to grayscale, and resize
         try:
@@ -332,6 +334,13 @@ class AsciiArtFrame(wx.Frame):
                 self.bitmap_button.SetBitmapLabel(self.ImagePreview)
             except Exception:
                 pass
+    
+    def ToggleProportions(self, event):
+        if self.tb_dimension.GetValue() == True:
+            self.tb_dimension.SetLabel("On")
+            
+        elif self.tb_dimension.GetValue() == False:
+            self.tb_dimension.SetLabel("Off")
 
 # end of class AsciiArtFrame
 

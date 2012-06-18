@@ -10,11 +10,14 @@ Version Num:	Development Stage 0.33
 ------------
 Version 0.33
    6-17-2012
-    12:41 AM
+     7:41 AM
 ------------
 - Updated dialog alerts to include destroy after each call
 - Created warning message for image conversions of large sizes (250,000 chars)
 - Created caution message for image conversion of really large sizes (2,000,000 chars)
+- Changed default font of text area to 2, the furthest zoom
+- Updated ascii luminosity for more accurate shading
+- Started toggle button for auto proportion
 
 
 ------------
