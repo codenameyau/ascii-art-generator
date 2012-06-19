@@ -1,16 +1,31 @@
 Ascii Art Generator Update Report
-Update Report Number: 06
+Update Report Number: 07
 
 ------------
-Last Update:	6-17-2012
-Version Num:	Development Stage 0.33
+Last Update:	6-18-2012
+Version Num:	Development Stage 0.36
 ------------
+
+
+------------
+Version 0.36
+   6-18-2012
+    11:31 PM
+------------
+- Enabled event handler for auto proportion button toggle
+- Created algorithm to generate proportions from image and text area
+- Changed tooltip dialog that appears over button hover
+- Completed auto proportion to generating ascii image when toggle is on
+- Statusbar now displays the directory of the last opened image
+- Updated size requirements before warning messages appear
+- Created toggle button for custom character
+- Updated darker shades for luminosity
 
 
 ------------
 Version 0.33
    6-17-2012
-     7:41 AM
+     7:41 PM
 ------------
 - Updated dialog alerts to include destroy after each call
 - Created warning message for image conversions of large sizes (250,000 chars)

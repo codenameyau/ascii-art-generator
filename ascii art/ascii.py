@@ -25,6 +25,7 @@ class AsciiArtFrame(wx.Frame):
         self.Ascii_Height = 100
         self.ImageIsLoaded = False
         self.ImagePath = ""
+        self.AutoProportion = False
     
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
@@ -82,11 +83,11 @@ class AsciiArtFrame(wx.Frame):
                                          wx.TE_MULTILINE | wx.HSCROLL | wx.TE_RICH | wx.TE_RICH2 | wx.TE_NOHIDESEL)
         
         # Begin Methods
-        self.__set_properties()
-        self.__do_layout()
+        self.SetProperties()
+        self.MakeLayout()
         self.EnableHandlers()
 
-    def __set_properties(self):
+    def SetProperties(self):
         
         self.SetTitle("Ascii Art Generator")
         _icon = wx.EmptyIcon()
@@ -114,7 +115,7 @@ class AsciiArtFrame(wx.Frame):
         self.tb_custom.SetToolTipString("Enables custom characters for ascii generation")
         self.label_dimension.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_dimension.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.tb_dimension.SetToolTipString("Generates ascii height and width based on best-fit proportions")
+        self.tb_dimension.SetToolTipString("Generates height and width to fill width of text area")
         self.label_height.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.et_height.SetToolTipString("Enter lines of height for ascii generation")
         self.label_width.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
@@ -126,9 +127,8 @@ class AsciiArtFrame(wx.Frame):
         self.label_scale.SetToolTipString("Scroll slider to change the font of the ascii characters")
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
         
-    def __do_layout(self):
+    def MakeLayout(self):
         
-        # begin wxGlade: AsciiArtFrame.__do_layout
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -159,19 +159,11 @@ class AsciiArtFrame(wx.Frame):
         sizer_3.Add(sizer_1, 1, wx.EXPAND, 0)
         self.panel_1.SetSizer(sizer_3)
         sizer_2.Add(self.panel_1, 0, wx.EXPAND, 0)
-        sizer_2.Add(self.et_asciiArea, 1, wx.ALL | wx.EXPAND, 2)
+        sizer_2.Add(self.et_asciiArea, 1, wx.ALL | wx.EXPAND, 1)
         self.SetSizer(sizer_2)
         self.Layout()
         self.Centre()
-    
-    def EnableHandlers(self):
         
-        self.Bind(wx.EVT_BUTTON, self.CreateAscii, self.b_start)
-        self.Bind(wx.EVT_BUTTON, self.OpenFileBrowser, self.bitmap_button)
-        self.Bind(wx.EVT_SCROLL, self.SliderZoom, self.slider_zoom)
-        self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleGrayscale, self.tb_grayscale)
-        self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProportions, self.tb_dimension)
-    
     #### --- DIALOG BOXES --- ####
     
     # InvalidInputDialog()
@@ -208,7 +200,16 @@ class AsciiArtFrame(wx.Frame):
         result = GiantSizeDialog.ShowModal()
         GiantSizeDialog.Destroy()
         return result
-
+    
+    def EnableHandlers(self):
+        
+        self.Bind(wx.EVT_BUTTON, self.CreateAscii, self.b_start)
+        self.Bind(wx.EVT_BUTTON, self.OpenFileBrowser, self.bitmap_button)
+        self.Bind(wx.EVT_SCROLL, self.SliderZoom, self.slider_zoom)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleGrayscale, self.tb_grayscale)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProportions, self.tb_dimension)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleCustomCharacters, self.tb_custom)
+        
     #### --- EVENT HANDLERS --- ####
     def OpenFileBrowser(self, event):
         
@@ -246,6 +247,7 @@ class AsciiArtFrame(wx.Frame):
                 else:
                     self.ImagePreview = wx.BitmapFromImage(self.ImageSource)
                 self.bitmap_button.SetBitmapLabel(self.ImagePreview)
+                self.status.SetStatusText(self.ImagePath)
             else:
                 pass
                 
@@ -267,44 +269,65 @@ class AsciiArtFrame(wx.Frame):
                     "=",
                     "+",
                     "l",
+                    "I",
                     "J",
                     "C",
                     "D",
-                    "E",
-                    "R"
+                    "B",
+                    "H",
+                    "M"
                     ]
         
         # Use bisect class for luminosity values
-        zonebounds = [17,34,51,68,85,102,119,136,153,170,187,204,221,238,255]
+        zonebounds = [15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255]
         
         # Open image, convert to grayscale, and resize
         try:
             if self.ImageIsLoaded == False:
                 raise RuntimeError
+            im = Image.open(self.ImagePath).convert("L")
             
-            self.Ascii_Height = int(self.et_height.GetValue())
-            self.Ascii_Width  = int(self.et_width.GetValue())
+            # Auto Proportion
+            if self.AutoProportion == True:
+                # Getting image text ratio to generate height and width 
+                text_w, text_h = self.et_asciiArea.GetClientSize()
+                img_w, img_h = im.size 
+                img_ratio = float(img_h)/float(img_w)
+                text_ratio = float(text_w)/float(text_h)
+                
+                text_h = int((text_h/3.0)*img_ratio*text_ratio)
+                text_w = int((text_w/2.0))
+                self.Ascii_Height = text_h
+                self.Ascii_Width  = text_w
+                
+                self.et_height.SetValue(str(text_h))
+                self.et_width.SetValue(str(text_w))
+            # Take user's size input
+            else:
+                self.Ascii_Height = int(self.et_height.GetValue())
+                self.Ascii_Width  = int(self.et_width.GetValue())
+            
+            
             size = self.Ascii_Height * self.Ascii_Width
-            if size > 2000000:
+            if size > 1500000:
                 if self.GiantSizeDialog() == wx.ID_NO:
                     raise AssertionError
-            elif size > 250000:
+            elif size > 500000:
                 if self.LargeSizeDialog() == wx.ID_NO:
                     raise AssertionError
                 
-            im = Image.open(self.ImagePath).convert("L")
             im = im.resize((self.Ascii_Width, self.Ascii_Height), Image.ANTIALIAS)
             
             # working with pixels, build up string
-            str = ""
+            asciiText = ""
             for y in range(0,im.size[1]):
                 for x in range(0,im.size[0]):
                     lum = 255-im.getpixel((x,y))
                     row = bisect(zonebounds, lum)
                     possibles = grayscale[row]
-                    str = str + possibles[random.randint(0,len(possibles)-1)]
-                str = str + "\n"
-            self.et_asciiArea.SetValue(str)
+                    asciiText = asciiText + possibles[random.randint(0,len(possibles)-1)]
+                asciiText = asciiText + "\n"
+            self.et_asciiArea.SetValue(asciiText)
         except RuntimeError:
             self.NoImageDialog()
         except ValueError:
@@ -338,10 +361,19 @@ class AsciiArtFrame(wx.Frame):
     def ToggleProportions(self, event):
         if self.tb_dimension.GetValue() == True:
             self.tb_dimension.SetLabel("On")
+            self.AutoProportion = True
+            self.et_height.SetEditable(False)
+            self.et_width.SetEditable(False)
             
         elif self.tb_dimension.GetValue() == False:
             self.tb_dimension.SetLabel("Off")
+            self.AutoProportion = False
+            self.et_height.SetEditable(True)
+            self.et_width.SetEditable(True)
 
+    def ToggleCustomCharacters(self, event):
+        pass
+    
 # end of class AsciiArtFrame
 
 if __name__ == "__main__":
