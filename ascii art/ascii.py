@@ -3,6 +3,7 @@ import wx
 import PIL
 import Image
 import random
+import ConfigParser
 from bisect import bisect
 
 class AsciiArtFrame(wx.Frame):
@@ -26,7 +27,17 @@ class AsciiArtFrame(wx.Frame):
         self.ImageIsLoaded = False
         self.ImagePath = ""
         self.AutoProportion = False
-    
+        self.CustomCharacters = False
+        self.AvaliableCustom = False
+        
+        # Config Reader
+        try:
+            self.config = ConfigParser.ConfigParser()
+            self.config.read("custom.ini")
+            self.AvaliableCustom = True
+        except:
+            self.AvaliableCustom = False
+
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
         ascii_Menu = wx.Menu()
@@ -201,6 +212,12 @@ class AsciiArtFrame(wx.Frame):
         GiantSizeDialog.Destroy()
         return result
     
+    def InvalidCustomDialog(self):
+        InvalidCustomDialog = wx.MessageDialog(None, "Custom characters could not be loaded properly.", 
+                                         "Invalid custom.ini", wx.OK | wx.CENTER | wx.ICON_ERROR)
+        InvalidCustomDialog.ShowModal()
+        InvalidCustomDialog.Destroy()
+            
     def EnableHandlers(self):
         
         self.Bind(wx.EVT_BUTTON, self.CreateAscii, self.b_start)
@@ -249,7 +266,7 @@ class AsciiArtFrame(wx.Frame):
                 self.bitmap_button.SetBitmapLabel(self.ImagePreview)
                 self.status.SetStatusText(self.ImagePath)
             else:
-                pass
+                self.InvalidCustomDialog()
                 
         except Exception:
             self.InvalidImageDialog()
@@ -257,6 +274,7 @@ class AsciiArtFrame(wx.Frame):
             filedialog.Destroy()
         
     def CreateAscii(self, event):
+        # Default characters for luminosity
         grayscale = [
                     " ",
                     " ",
@@ -276,11 +294,28 @@ class AsciiArtFrame(wx.Frame):
                     "B",
                     "H",
                     "M"
-                    ]
-        
+                    ]    
         # Use bisect class for luminosity values
         zonebounds = [15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255]
         
+        # Obtain custom characters from ini file
+        if self.CustomCharacters == True:
+            try:
+                if self.AvaliableCustom == False:
+                    raise Exception
+                grayscale = [" "," "]
+                grayscale_entries = 2
+                for section in self.config.sections():
+                    grayscale.append(self.config.get(section, "values"))
+                    grayscale_entries += 1
+                zonebounds = []
+                basebound = int(255.0/grayscale_entries)
+                for i in range(1,grayscale_entries):
+                    zonebounds.append(basebound*i)
+
+            except Exception:
+                self.InvalidCustomDialog()
+            
         # Open image, convert to grayscale, and resize
         try:
             if self.ImageIsLoaded == False:
@@ -309,7 +344,7 @@ class AsciiArtFrame(wx.Frame):
             
             
             size = self.Ascii_Height * self.Ascii_Width
-            if size > 1500000:
+            if size > 2000000:
                 if self.GiantSizeDialog() == wx.ID_NO:
                     raise AssertionError
             elif size > 500000:
@@ -372,7 +407,12 @@ class AsciiArtFrame(wx.Frame):
             self.et_width.SetEditable(True)
 
     def ToggleCustomCharacters(self, event):
-        pass
+        if self.tb_custom.GetValue() == True:
+            self.tb_custom.SetLabel("On")
+            self.CustomCharacters = True
+        elif self.tb_custom.GetValue() == False:
+            self.tb_custom.SetLabel("Off")
+            self.CustomCharacters = False 
     
 # end of class AsciiArtFrame
 

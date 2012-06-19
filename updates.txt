@@ -1,10 +1,19 @@
 Ascii Art Generator Update Report
-Update Report Number: 07
+Update Report Number: 08
 
 ------------
-Last Update:	6-18-2012
-Version Num:	Development Stage 0.36
+Last Update:	6-19-2012
+Version Num:	Development Stage 0.40
 ------------
+
+
+------------
+Version 0.40
+   6-19-2012
+     5:20 PM
+------------
+- Attempted to make custom characters with custom.ini
+- Decided to remove custom characters feature
 
 
 ------------
