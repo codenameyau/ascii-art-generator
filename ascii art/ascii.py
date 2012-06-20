@@ -6,8 +6,6 @@
 import wx
 import PIL
 import Image
-import random
-import ConfigParser
 from bisect import bisect
 
 class AsciiArtFrame(wx.Frame):
@@ -35,35 +33,42 @@ class AsciiArtFrame(wx.Frame):
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
         ascii_Menu = wx.Menu()
-        ascii_Menu.Append(wx.NewId(), "Open", "", wx.ITEM_NORMAL)
-        ascii_Menu.Append(wx.NewId(), "Save", "", wx.ITEM_NORMAL)
+        menu_file_open = ascii_Menu.Append(wx.NewId(), "Open Image", "", wx.ITEM_NORMAL)
+        menu_file_save = ascii_Menu.Append(wx.NewId(), "Save Text", "", wx.ITEM_NORMAL)
         ascii_Menu.AppendSeparator()
-        ascii_Menu.Append(wx.NewId(), "Close", "", wx.ITEM_NORMAL)
-        ascii_Menu.Append(wx.NewId(), "Exit", "", wx.ITEM_NORMAL)
+        menu_file_restart = ascii_Menu.Append(wx.NewId(), "Clear", "", wx.ITEM_NORMAL)
+        menu_file_exit = ascii_Menu.Append(wx.NewId(), "Exit", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "File")
         
         ascii_Menu = wx.Menu()
-        ascii_Menu.Append(wx.NewId(), "Start", "", wx.ITEM_NORMAL)
+        menu_run_start = ascii_Menu.Append(wx.NewId(), "Start", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Run")
         
         ascii_Menu = wx.Menu()
-        ascii_Menu.Append(wx.NewId(), "Full View", "", wx.ITEM_NORMAL)
-        ascii_Menu.Append(wx.NewId(), "View Image", "", wx.ITEM_NORMAL)
+        menu_view_full = ascii_Menu.Append(wx.NewId(), "Full View", "", wx.ITEM_NORMAL)
+        menu_view_image = ascii_Menu.Append(wx.NewId(), "View Image", "", wx.ITEM_NORMAL)
         ascii_Menu.AppendSeparator()
-        ascii_Menu.Append(wx.NewId(), "Zoom In", "", wx.ITEM_NORMAL)
-        ascii_Menu.Append(wx.NewId(), "Zoom Out", "", wx.ITEM_NORMAL)
-        ascii_Menu.Append(wx.NewId(), "Zoom Reset", "", wx.ITEM_NORMAL)
+        menu_view_in = ascii_Menu.Append(wx.NewId(), "Zoom In\t+", "", wx.ITEM_NORMAL)
+        menu_view_out = ascii_Menu.Append(wx.NewId(), "Zoom Out\t-", "", wx.ITEM_NORMAL)
+        menu_view_reset = ascii_Menu.Append(wx.NewId(), "Zoom Reset", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "View")
         
         ascii_Menu = wx.Menu()
-        ascii_Menu.Append(wx.NewId(), "Show Statusbar", "", wx.ITEM_NORMAL)
+        menu_setting_status = ascii_Menu.Append(wx.NewId(), "Show Statusbar", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Settings")
         
         ascii_Menu = wx.Menu()
-        ascii_Menu.Append(wx.NewId(), "Help", "", wx.ITEM_NORMAL)
-        ascii_Menu.Append(wx.NewId(), "About", "", wx.ITEM_NORMAL)
+        menu_help_help = ascii_Menu.Append(wx.NewId(), "Help", "", wx.ITEM_NORMAL)
+        menu_help_about = ascii_Menu.Append(wx.NewId(), "About", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Help")
         self.SetMenuBar(self.ascii_menu)
+        
+        # Bind Menu Items
+        self.Bind(wx.EVT_MENU, self.MenuFileOpen, menu_file_open)
+        self.Bind(wx.EVT_MENU, self.MenuFileSave, menu_file_save)
+        self.Bind(wx.EVT_MENU, self.MenuFileRestart, menu_file_restart)
+        self.Bind(wx.EVT_MENU, self.MenuFileExit, menu_file_exit)
+        self.Bind(wx.EVT_MENU, self.MenuRunStart, menu_run_start)
         
         # Widgets
         self.status = self.CreateStatusBar(1, 0)
@@ -93,9 +98,6 @@ class AsciiArtFrame(wx.Frame):
     def SetProperties(self):
         
         self.SetTitle("Ascii Art Generator")
-        _icon = wx.EmptyIcon()
-        _icon.CopyFromBitmap(wx.Bitmap("icon.png", wx.BITMAP_TYPE_ANY))
-        self.SetIcon(_icon)
         self.SetSize((1100, 700))
         self.status.SetStatusWidths([-1])
         
@@ -164,8 +166,6 @@ class AsciiArtFrame(wx.Frame):
         self.Centre()
         
     #### --- DIALOG BOXES --- ####
-    
-    # InvalidInputDialog()
     def InvalidInputDialog(self):
         InvalidDialog = wx.MessageDialog(None, "You must enter a valid height and width.", 
                                          "Invalid Size", wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
@@ -199,7 +199,13 @@ class AsciiArtFrame(wx.Frame):
         result = GiantSizeDialog.ShowModal()
         GiantSizeDialog.Destroy()
         return result
-            
+
+    def ShowSaveDialog(self):
+        ShowSaveDialog = wx.MessageDialog(None, "Your file has been successfully saved.", "File Saved", 
+                                          wx.OK | wx.CENTER | wx.ICON_INFORMATION)
+        ShowSaveDialog.ShowModal()
+        ShowSaveDialog.Destroy()
+
     def EnableHandlers(self):
         
         self.Bind(wx.EVT_BUTTON, self.CreateAscii, self.b_start)
@@ -208,7 +214,40 @@ class AsciiArtFrame(wx.Frame):
         self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleGrayscale, self.tb_grayscale)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProportions, self.tb_dimension)
         
-    #### --- EVENT HANDLERS --- ####
+    def MenuFileOpen(self, event):
+        self.OpenFileBrowser(event)
+    
+    def MenuFileSave(self, event):
+        wildcard = "Text Files (*.txt)| *.txt"
+        SaveDialog = wx.FileDialog(None, message="Save text as",
+                                   wildcard=wildcard,style = wx.SAVE)
+        try:
+            if SaveDialog.ShowModal() == wx.ID_OK:
+                savepath = SaveDialog.GetPath()
+                savetext = self.et_asciiArea.GetValue()
+                savefile = open(savepath, 'w')
+                savefile.write(savetext)
+                savefile.close()
+                self.ShowSaveDialog()
+        except Exception:
+            pass
+    
+    def MenuFileRestart(self, event):
+        self.ImageIsLoaded = False
+        self.bitmap_button.SetBitmapLabel(self.blank_image)
+        self.status.SetStatusText("New")
+        self.et_asciiArea.Clear()
+        self.et_height.Clear()
+        self.et_width.Clear()
+    
+    def MenuFileExit(self, event):
+        self.Close()
+        
+    #### EVENT HANDLERS ####
+    
+    def MenuRunStart(self, event):
+        self.CreateAscii(event)
+    
     def OpenFileBrowser(self, event):
         
         wildcard = "Image Files |*.jpg;*.png;*.bmp|" \
@@ -323,7 +362,7 @@ class AsciiArtFrame(wx.Frame):
                     lum = 255-im.getpixel((x,y))
                     row = bisect(zonebounds, lum)
                     possibles = grayscale[row]
-                    asciiText = asciiText + possibles[random.randint(0,len(possibles)-1)]
+                    asciiText = asciiText + possibles[0]
                 asciiText = asciiText + "\n"
             self.et_asciiArea.SetValue(asciiText)
         except RuntimeError:

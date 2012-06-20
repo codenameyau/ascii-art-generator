@@ -9,11 +9,21 @@ Version Num:	Development Stage 0.40
 
 ------------
 Version 0.40
-   6-19-2012
-     5:20 PM
+   6-20-2012
+     4:20 PM
 ------------
 - Removed custom character feature and toggle button
 - Removed Set Characters from setting in the menubar
+- Removed random generation of ascii characters
+- Created save dialog when successfully saving text file
+- Created save file dialog browser to obtain savefile path
+- Deleted icon and removed icon code dependency
+- Enabled menubar File->Open Image
+- Enabled menubar File->Save Text
+- Enabled menubar File->Clear
+- Enabled menubar File->Exit
+- Enabled menubar Run->Start
+
 
 
 ------------
