@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+# Program: Ascii Art Generator
+# Author:  Jorge Yau
+# Email:   exaccus0205@gmail.com
+# File:    ascii.py
+
 import wx
 import PIL
 import Image
@@ -27,16 +31,6 @@ class AsciiArtFrame(wx.Frame):
         self.ImageIsLoaded = False
         self.ImagePath = ""
         self.AutoProportion = False
-        self.CustomCharacters = False
-        self.AvaliableCustom = False
-        
-        # Config Reader
-        try:
-            self.config = ConfigParser.ConfigParser()
-            self.config.read("custom.ini")
-            self.AvaliableCustom = True
-        except:
-            self.AvaliableCustom = False
 
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
@@ -62,7 +56,7 @@ class AsciiArtFrame(wx.Frame):
         self.ascii_menu.Append(ascii_Menu, "View")
         
         ascii_Menu = wx.Menu()
-        ascii_Menu.Append(wx.NewId(), "Custom Characters", "", wx.ITEM_NORMAL)
+        ascii_Menu.Append(wx.NewId(), "Show Statusbar", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Settings")
         
         ascii_Menu = wx.Menu()
@@ -77,8 +71,6 @@ class AsciiArtFrame(wx.Frame):
         self.bitmap_button = wx.BitmapButton(self.panel_1, -1, self.ImagePreview)
         self.label_grayscale = wx.StaticText(self.panel_1, -1, "Grayscale Preview")
         self.tb_grayscale = wx.ToggleButton(self.panel_1, -1, "Off")
-        self.label_custom = wx.StaticText(self.panel_1, -1, "Custom Characters")
-        self.tb_custom = wx.ToggleButton(self.panel_1, -1, "Off")
         self.label_dimension = wx.StaticText(self.panel_1, -1, "Auto Proportions")
         self.tb_dimension = wx.ToggleButton(self.panel_1, -1, "Off")
         self.label_height = wx.StaticText(self.panel_1, -1, "Rows for Height")
@@ -121,9 +113,6 @@ class AsciiArtFrame(wx.Frame):
         self.label_grayscale.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_grayscale.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_grayscale.SetToolTipString("Switches image color of preview to grayscale")
-        self.label_custom.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.tb_custom.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.tb_custom.SetToolTipString("Enables custom characters for ascii generation")
         self.label_dimension.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_dimension.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_dimension.SetToolTipString("Generates height and width to fill width of text area")
@@ -137,6 +126,7 @@ class AsciiArtFrame(wx.Frame):
         self.label_scale.SetFont(wx.Font(11, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.label_scale.SetToolTipString("Scroll slider to change the font of the ascii characters")
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
+        self.et_asciiArea.SetEditable(False)
         
     def MakeLayout(self):
         
@@ -150,8 +140,6 @@ class AsciiArtFrame(wx.Frame):
         sizer_3.Add(self.bitmap_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 6)
         grid_settings.Add(self.label_grayscale, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         grid_settings.Add(self.tb_grayscale, 0, wx.Top | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_settings.Add(self.label_custom, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
-        grid_settings.Add(self.tb_custom, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_settings.Add(self.label_dimension, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         grid_settings.Add(self.tb_dimension, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_settings.Add(self.label_height, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
@@ -192,7 +180,7 @@ class AsciiArtFrame(wx.Frame):
     
     def InvalidImageDialog(self):
         InvalidImageDialog = wx.MessageDialog(None, "The file you have selected is not an image file.", 
-                                         "Invalid File", wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
+                                         "Invalid File", wx.OK | wx.CENTER | wx.ICON_ERROR)
         InvalidImageDialog.ShowModal()
         InvalidImageDialog.Destroy()
         
@@ -211,12 +199,6 @@ class AsciiArtFrame(wx.Frame):
         result = GiantSizeDialog.ShowModal()
         GiantSizeDialog.Destroy()
         return result
-    
-    def InvalidCustomDialog(self):
-        InvalidCustomDialog = wx.MessageDialog(None, "Custom characters could not be loaded properly.", 
-                                         "Invalid custom.ini", wx.OK | wx.CENTER | wx.ICON_ERROR)
-        InvalidCustomDialog.ShowModal()
-        InvalidCustomDialog.Destroy()
             
     def EnableHandlers(self):
         
@@ -225,20 +207,19 @@ class AsciiArtFrame(wx.Frame):
         self.Bind(wx.EVT_SCROLL, self.SliderZoom, self.slider_zoom)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleGrayscale, self.tb_grayscale)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProportions, self.tb_dimension)
-        self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleCustomCharacters, self.tb_custom)
         
     #### --- EVENT HANDLERS --- ####
     def OpenFileBrowser(self, event):
         
         wildcard = "Image Files |*.jpg;*.png;*.bmp|" \
-                 "JPEG (*.jpg)|*.jpg|" \
-                 "PNG (*.png)|*.png|" \
-                 "BMP (*.bmp)|*.bmp"
+                    "JPEG (*.jpg)|*.jpg|" \
+                    "PNG (*.png)|*.png|" \
+                    "BMP (*.bmp)|*.bmp"
         filedialog = wx.FileDialog (
-                                self, message="Choose a file",
-                                defaultFile="", wildcard=wildcard,
-                                style=wx.OPEN | wx.CHANGE_DIR
-                                )
+                                    self, message="Choose a file",
+                                    defaultFile="", wildcard=wildcard,
+                                    style=wx.OPEN | wx.CHANGE_DIR
+                                    )
         try:
             if filedialog.ShowModal() == wx.ID_OK:
                 self.ImagePath = filedialog.GetPath()
@@ -266,7 +247,7 @@ class AsciiArtFrame(wx.Frame):
                 self.bitmap_button.SetBitmapLabel(self.ImagePreview)
                 self.status.SetStatusText(self.ImagePath)
             else:
-                self.InvalidCustomDialog()
+                pass
                 
         except Exception:
             self.InvalidImageDialog()
@@ -294,27 +275,9 @@ class AsciiArtFrame(wx.Frame):
                     "B",
                     "H",
                     "M"
-                    ]    
+                    ]
         # Use bisect class for luminosity values
         zonebounds = [15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255]
-        
-        # Obtain custom characters from ini file
-        if self.CustomCharacters == True:
-            try:
-                if self.AvaliableCustom == False:
-                    raise Exception
-                grayscale = [" "," "]
-                grayscale_entries = 2
-                for section in self.config.sections():
-                    grayscale.append(self.config.get(section, "values"))
-                    grayscale_entries += 1
-                zonebounds = []
-                basebound = int(255.0/grayscale_entries)
-                for i in range(1,grayscale_entries):
-                    zonebounds.append(basebound*i)
-
-            except Exception:
-                self.InvalidCustomDialog()
             
         # Open image, convert to grayscale, and resize
         try:

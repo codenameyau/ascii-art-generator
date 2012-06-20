@@ -12,8 +12,8 @@ Version 0.40
    6-19-2012
      5:20 PM
 ------------
-- Attempted to make custom characters with custom.ini
-- Decided to remove custom characters feature
+- Removed custom character feature and toggle button
+- Removed Set Characters from setting in the menubar
 
 
 ------------
