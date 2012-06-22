@@ -6,6 +6,7 @@
 import wx
 import PIL
 import Image
+import os
 from bisect import bisect
 
 class AsciiArtFrame(wx.Frame):
@@ -29,24 +30,25 @@ class AsciiArtFrame(wx.Frame):
         self.ImageIsLoaded = False
         self.ImagePath = ""
         self.AutoProportion = False
+        self.HidePanel = False
 
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
         ascii_Menu = wx.Menu()
-        menu_file_open = ascii_Menu.Append(wx.NewId(), "Open Image", "", wx.ITEM_NORMAL)
-        menu_file_save = ascii_Menu.Append(wx.NewId(), "Save Text", "", wx.ITEM_NORMAL)
+        menu_file_open = ascii_Menu.Append(wx.NewId(), "Open Image\tCtrl+O", "", wx.ITEM_NORMAL)
+        menu_file_save = ascii_Menu.Append(wx.NewId(), "Save Text\tCtrl+S", "", wx.ITEM_NORMAL)
         ascii_Menu.AppendSeparator()
-        menu_file_restart = ascii_Menu.Append(wx.NewId(), "Clear", "", wx.ITEM_NORMAL)
+        menu_file_restart = ascii_Menu.Append(wx.NewId(), "Clear\tCtrl+C", "", wx.ITEM_NORMAL)
         menu_file_exit = ascii_Menu.Append(wx.NewId(), "Exit", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "File")
         
         ascii_Menu = wx.Menu()
-        menu_run_start = ascii_Menu.Append(wx.NewId(), "Start", "", wx.ITEM_NORMAL)
+        menu_run_start = ascii_Menu.Append(wx.NewId(), "Start\tF2", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Run")
         
         ascii_Menu = wx.Menu()
-        menu_view_full = ascii_Menu.Append(wx.NewId(), "Full View", "", wx.ITEM_NORMAL)
-        menu_view_image = ascii_Menu.Append(wx.NewId(), "View Image", "", wx.ITEM_NORMAL)
+        menu_view_full = ascii_Menu.Append(wx.NewId(), "Full View\tF3", "", wx.ITEM_NORMAL)
+        menu_view_image = ascii_Menu.Append(wx.NewId(), "View Image\tF4", "", wx.ITEM_NORMAL)
         ascii_Menu.AppendSeparator()
         menu_view_in = ascii_Menu.Append(wx.NewId(), "Zoom In\t+", "", wx.ITEM_NORMAL)
         menu_view_out = ascii_Menu.Append(wx.NewId(), "Zoom Out\t-", "", wx.ITEM_NORMAL)
@@ -55,7 +57,7 @@ class AsciiArtFrame(wx.Frame):
         
         ascii_Menu = wx.Menu()
         menu_setting_status = ascii_Menu.Append(wx.NewId(), "Show Statusbar", "", wx.ITEM_NORMAL)
-        self.ascii_menu.Append(ascii_Menu, "Settings")
+        self.ascii_menu.Append(ascii_Menu, "Window")
         
         ascii_Menu = wx.Menu()
         menu_help_help = ascii_Menu.Append(wx.NewId(), "Help", "", wx.ITEM_NORMAL)
@@ -69,6 +71,12 @@ class AsciiArtFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.MenuFileRestart, menu_file_restart)
         self.Bind(wx.EVT_MENU, self.MenuFileExit, menu_file_exit)
         self.Bind(wx.EVT_MENU, self.MenuRunStart, menu_run_start)
+        
+        self.Bind(wx.EVT_MENU, self.MenuViewImage, menu_view_image)
+        self.Bind(wx.EVT_MENU, self.MenuViewFull, menu_view_full)
+        self.Bind(wx.EVT_MENU, self.MenuViewIn, menu_view_in)
+        self.Bind(wx.EVT_MENU, self.MenuViewOut, menu_view_out)
+        self.Bind(wx.EVT_MENU, self.MenuViewReset, menu_view_reset)
         
         # Widgets
         self.status = self.CreateStatusBar(1, 0)
@@ -179,7 +187,7 @@ class AsciiArtFrame(wx.Frame):
         NoImageDialog.Destroy()
     
     def InvalidImageDialog(self):
-        InvalidImageDialog = wx.MessageDialog(None, "The file you have selected is not an image file.", 
+        InvalidImageDialog = wx.MessageDialog(None, "The image you have selected is an invalid file.", 
                                          "Invalid File", wx.OK | wx.CENTER | wx.ICON_ERROR)
         InvalidImageDialog.ShowModal()
         InvalidImageDialog.Destroy()
@@ -242,6 +250,35 @@ class AsciiArtFrame(wx.Frame):
     
     def MenuFileExit(self, event):
         self.Close()
+        
+    def MenuViewImage(self, event):
+        try:
+            if self.ImageIsLoaded == True:
+                os.startfile(self.ImagePath)
+            else:
+                self.NoImageDialog()
+        except Exception:
+            self.InvalidImageDialog()
+
+    def MenuViewFull(self, event):
+        if self.HidePanel == False:
+            self.panel_1.Show(False)
+            self.HidePanel = True
+        else:
+            self.panel_1.Show(True)
+            self.HidePanel = False
+        
+    def MenuViewIn(self, event):
+        self.slider_zoom.SetValue(self.slider_zoom.GetValue()+1)
+        self.SliderZoom(event)
+    
+    def MenuViewOut(self, event):
+        self.slider_zoom.SetValue(self.slider_zoom.GetValue()-1)
+        self.SliderZoom(event)
+        
+    def MenuViewReset(self, event):
+        self.slider_zoom.SetValue(1)
+        self.SliderZoom(event)
         
     #### EVENT HANDLERS ####
     
