@@ -1,23 +1,34 @@
 Ascii Art Generator Update Report
-Update Report Number: 09
+Update Report Number: 10
 
 ------------
-Last Update:	6-22-2012
-Version Num:	Development Stage 0.45
+Last Update:	6-23-2012
+Version Num:	Development Stage 0.50
 ------------
+
+
+------------
+Version 0.50
+   6-23-2012
+    12:00 AM
+------------
+- Started menubar Help->Help
+- Started menubar Help->About
 
 
 ------------
 Version 0.45
    6-22-2012
-    12:31 AM
+    10:31 PM
 ------------
 - Enabled menubar View->Zoom In
 - Enabled menubar View->Zoom Out
 - Enabled menubar View->Zoom Reset
 - Enabled menubar View->View Image
-- Enabled keyboard shortcut of certain menu items
-- Started hide/show feature of view->Full View
+- Removed hide/show feature of view->Full View
+- Enabled menubar Tools->Toggle Grayscale
+- Enabled menubar Tools->Auto Proportions
+- Enabled and uodated keyboard shortcut of menu items
 
 
 ------------

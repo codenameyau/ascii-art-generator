@@ -30,7 +30,8 @@ class AsciiArtFrame(wx.Frame):
         self.ImageIsLoaded = False
         self.ImagePath = ""
         self.AutoProportion = False
-        self.HidePanel = False
+        self.GrayscaleActive = False
+        self.ProportionsActive = False
 
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
@@ -47,8 +48,7 @@ class AsciiArtFrame(wx.Frame):
         self.ascii_menu.Append(ascii_Menu, "Run")
         
         ascii_Menu = wx.Menu()
-        menu_view_full = ascii_Menu.Append(wx.NewId(), "Full View\tF3", "", wx.ITEM_NORMAL)
-        menu_view_image = ascii_Menu.Append(wx.NewId(), "View Image\tF4", "", wx.ITEM_NORMAL)
+        menu_view_image = ascii_Menu.Append(wx.NewId(), "View Image\tF5", "", wx.ITEM_NORMAL)
         ascii_Menu.AppendSeparator()
         menu_view_in = ascii_Menu.Append(wx.NewId(), "Zoom In\t+", "", wx.ITEM_NORMAL)
         menu_view_out = ascii_Menu.Append(wx.NewId(), "Zoom Out\t-", "", wx.ITEM_NORMAL)
@@ -56,8 +56,9 @@ class AsciiArtFrame(wx.Frame):
         self.ascii_menu.Append(ascii_Menu, "View")
         
         ascii_Menu = wx.Menu()
-        menu_setting_status = ascii_Menu.Append(wx.NewId(), "Show Statusbar", "", wx.ITEM_NORMAL)
-        self.ascii_menu.Append(ascii_Menu, "Window")
+        menu_tools_grayscale = ascii_Menu.Append(wx.NewId(), "Toggle Grayscale\tF3", "", wx.ITEM_NORMAL)
+        menu_tools_proportions = ascii_Menu.Append(wx.NewId(), "Auto Proportions\tF4", "", wx.ITEM_NORMAL)
+        self.ascii_menu.Append(ascii_Menu, "Tools")
         
         ascii_Menu = wx.Menu()
         menu_help_help = ascii_Menu.Append(wx.NewId(), "Help", "", wx.ITEM_NORMAL)
@@ -73,10 +74,14 @@ class AsciiArtFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.MenuRunStart, menu_run_start)
         
         self.Bind(wx.EVT_MENU, self.MenuViewImage, menu_view_image)
-        self.Bind(wx.EVT_MENU, self.MenuViewFull, menu_view_full)
         self.Bind(wx.EVT_MENU, self.MenuViewIn, menu_view_in)
         self.Bind(wx.EVT_MENU, self.MenuViewOut, menu_view_out)
         self.Bind(wx.EVT_MENU, self.MenuViewReset, menu_view_reset)
+        
+        self.Bind(wx.EVT_MENU, self.MenuToolsGrayscale, menu_tools_grayscale)
+        self.Bind(wx.EVT_MENU, self.MenuToolsProportions, menu_tools_proportions)
+        self.Bind(wx.EVT_MENU, self.MenuHelpHelp, menu_help_help)
+        self.Bind(wx.EVT_MENU, self.MenuHelpAbout, menu_help_about)
         
         # Widgets
         self.status = self.CreateStatusBar(1, 0)
@@ -259,14 +264,6 @@ class AsciiArtFrame(wx.Frame):
                 self.NoImageDialog()
         except Exception:
             self.InvalidImageDialog()
-
-    def MenuViewFull(self, event):
-        if self.HidePanel == False:
-            self.panel_1.Show(False)
-            self.HidePanel = True
-        else:
-            self.panel_1.Show(True)
-            self.HidePanel = False
         
     def MenuViewIn(self, event):
         self.slider_zoom.SetValue(self.slider_zoom.GetValue()+1)
@@ -279,6 +276,32 @@ class AsciiArtFrame(wx.Frame):
     def MenuViewReset(self, event):
         self.slider_zoom.SetValue(1)
         self.SliderZoom(event)
+        
+    def MenuToolsGrayscale(self, event):
+        if self.GrayscaleActive == False:
+            self.GrayscaleActive = True
+            self.tb_grayscale.SetValue(True)
+            self.ToggleGrayscale(event)
+        else:
+            self.GrayscaleActive = False
+            self.tb_grayscale.SetValue(False)
+            self.ToggleGrayscale(event)
+        
+    def MenuToolsProportions(self, event):
+        if self.ProportionsActive == False:
+            self.ProportionsActive = True
+            self.tb_dimension.SetValue(True)
+            self.ToggleProportions(event)
+        else:
+            self.ProportionsActive = False
+            self.tb_dimension.SetValue(False)
+            self.ToggleProportions(event)
+    
+    def MenuHelpHelp(self, event):
+        self.Close()
+        
+    def MenuHelpAbout(self, event):
+        self.Close()
         
     #### EVENT HANDLERS ####
     
