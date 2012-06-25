@@ -127,19 +127,19 @@ class AsciiArtFrame(wx.Frame):
         self.bitmap_button.SetDefault()
         self.label_grayscale.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_grayscale.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.tb_grayscale.SetToolTipString("Switches image color of preview to grayscale")
+        self.tb_grayscale.SetToolTipString("Toggles preview image color between grayscale and RGB")
         self.label_dimension.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.tb_dimension.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.tb_dimension.SetToolTipString("Generates height and width to fill width of text area")
+        self.tb_dimension.SetToolTipString("Generates rows and columns to fill width of the text area")
         self.label_height.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.et_height.SetToolTipString("Enter lines of height for ascii generation")
+        self.et_height.SetToolTipString("Enter number of lines for height")
         self.label_width.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.et_width.SetToolTipString("Enter characters of width for ascii generation")
+        self.et_width.SetToolTipString("Enter number of columns for width")
         self.b_start.SetMinSize((105, 50))
         self.b_start.SetFont(wx.Font(11, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
         self.b_start.SetToolTipString("Generates ascii art from the image loaded")
         self.label_scale.SetFont(wx.Font(11, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Tahoma"))
-        self.label_scale.SetToolTipString("Scroll slider to change the font of the ascii characters")
+        self.label_scale.SetToolTipString("Scroll slider to change the font size of the ascii characters")
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
         self.et_asciiArea.SetEditable(False)
         
@@ -298,10 +298,21 @@ class AsciiArtFrame(wx.Frame):
             self.ToggleProportions(event)
     
     def MenuHelpHelp(self, event):
-        self.Close()
+        help1 = ("First Time Users:\nStep 1:  Click on the preview box to open an image." +
+                "\nStep 2:  Click the Auto Proportion button or press (F4)." +
+                "\nStep 3:  Press the Start button or Menu->Run->Start (F2)." +
+                "\n\nTip:  Hover the mouse over something to read what it does."
+                )
+        Help = wx.MessageDialog(None, help1, "Help", wx.ICON_QUESTION)
+        Help.ShowModal()
         
     def MenuHelpAbout(self, event):
-        self.Close()
+        About = wx.AboutDialogInfo()
+        About.SetName('Ascii Art Generator')
+        About.SetVersion('0.5')
+        About.SetCopyright('(C) 2012 \tJorge Yau')
+        About.SetDescription('Contact: \tcodenameyau@gmail.com')
+        wx.AboutBox(About)
         
     #### EVENT HANDLERS ####
     
@@ -430,6 +441,8 @@ class AsciiArtFrame(wx.Frame):
         except ValueError:
             self.InvalidInputDialog()
         except AssertionError:
+            pass
+        except MemoryError:
             pass
         except Exception:
             self.InvalidImageDialog()

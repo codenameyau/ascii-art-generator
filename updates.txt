@@ -2,18 +2,22 @@ Ascii Art Generator Update Report
 Update Report Number: 10
 
 ------------
-Last Update:	6-23-2012
-Version Num:	Development Stage 0.50
+Last Update:	6-25-2012
+Version Num:	0.50 Stable Beta Stage
 ------------
 
+
+Development Information (ver 0.10 to 0.50)
 
 ------------
 Version 0.50
-   6-23-2012
-    12:00 AM
+   6-25-2012
+     9:00 AM
 ------------
-- Started menubar Help->Help
-- Started menubar Help->About
+- Enabled menubar Help->Help
+- Enabled menubar Help->About
+- Wrote description for first time user in Help
+- Wrote application information and copyright in About
 
 
 ------------
