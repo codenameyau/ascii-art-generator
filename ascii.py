@@ -1,15 +1,19 @@
-# Program: Ascii Art Generator
-# Author:  Jorge Yau
-# Email:   exaccus0205@gmail.com
-# File:    ascii.py
+"""
+Program: Ascii Art Generator
+Email:   codenameyau@gmail.com
+Author:  Jorge Yau
+"""
 
 import wx
-import PIL
-import Image
+from PIL import Image
 import os
 from bisect import bisect
 
 class AsciiArtFrame(wx.Frame):
+    """
+    Inherits from WX GUI Frame. Constructs the graphical user
+    interface for the main application window.
+    """
     def __init__(self, *args, **kwds):
         # AsciiArtFrame.__init__
         kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX |\
@@ -17,13 +21,13 @@ class AsciiArtFrame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         self.SetMinSize((320,700))
         self.SetBackgroundStyle(wx.BG_STYLE_SYSTEM)
-        
+
         # Blank Image
         self.blank_image = wx.EmptyBitmapRGBA(280,280,255,255,255)
         self.ImagePreview = self.blank_image
         self.ImageSource = self.blank_image
         self.ImageGrayscale = self.blank_image
-        
+
         # Resources
         self.Ascii_Width  = 100
         self.Ascii_Height = 100
@@ -35,55 +39,59 @@ class AsciiArtFrame(wx.Frame):
 
         # Menu Bar
         self.ascii_menu = wx.MenuBar()
+
+        # Menu options for 'File'
         ascii_Menu = wx.Menu()
-        menu_file_open = ascii_Menu.Append(wx.NewId(), "Open Image\tCtrl+O", "", wx.ITEM_NORMAL)
-        menu_file_save = ascii_Menu.Append(wx.NewId(), "Save Text\tCtrl+S", "", wx.ITEM_NORMAL)
+        menu_file_open = ascii_Menu.Append(wx.NewId(), "Open Image", "", wx.ITEM_NORMAL)
+        menu_file_save = ascii_Menu.Append(wx.NewId(), "Save Text", "", wx.ITEM_NORMAL)
         ascii_Menu.AppendSeparator()
-        menu_file_restart = ascii_Menu.Append(wx.NewId(), "Clear\tCtrl+C", "", wx.ITEM_NORMAL)
+        menu_file_restart = ascii_Menu.Append(wx.NewId(), "Clear", "", wx.ITEM_NORMAL)
         menu_file_exit = ascii_Menu.Append(wx.NewId(), "Exit", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "File")
-        
+
+        # Menu options for 'Run'
         ascii_Menu = wx.Menu()
-        menu_run_start = ascii_Menu.Append(wx.NewId(), "Start\tF2", "", wx.ITEM_NORMAL)
+        menu_run_start = ascii_Menu.Append(wx.NewId(), "Start", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Run")
-        
+
+        # Menu options for 'View'
         ascii_Menu = wx.Menu()
-        menu_view_image = ascii_Menu.Append(wx.NewId(), "View Image\tF5", "", wx.ITEM_NORMAL)
+        menu_view_image = ascii_Menu.Append(wx.NewId(), "View Image", "", wx.ITEM_NORMAL)
         ascii_Menu.AppendSeparator()
-        menu_view_in = ascii_Menu.Append(wx.NewId(), "Zoom In\t+", "", wx.ITEM_NORMAL)
-        menu_view_out = ascii_Menu.Append(wx.NewId(), "Zoom Out\t-", "", wx.ITEM_NORMAL)
+        menu_view_in = ascii_Menu.Append(wx.NewId(), "Zoom In", "", wx.ITEM_NORMAL)
+        menu_view_out = ascii_Menu.Append(wx.NewId(), "Zoom Out", "", wx.ITEM_NORMAL)
         menu_view_reset = ascii_Menu.Append(wx.NewId(), "Zoom Reset", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "View")
-        
+
+        # Menu options for 'Tools'
         ascii_Menu = wx.Menu()
-        menu_tools_grayscale = ascii_Menu.Append(wx.NewId(), "Toggle Grayscale\tF3", "", wx.ITEM_NORMAL)
-        menu_tools_proportions = ascii_Menu.Append(wx.NewId(), "Auto Proportions\tF4", "", wx.ITEM_NORMAL)
+        menu_tools_grayscale = ascii_Menu.Append(wx.NewId(), "Toggle Grayscale", "", wx.ITEM_NORMAL)
+        menu_tools_proportions = ascii_Menu.Append(wx.NewId(), "Auto Proportions", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Tools")
-        
+
+        # Menu options for 'Help'
         ascii_Menu = wx.Menu()
         menu_help_help = ascii_Menu.Append(wx.NewId(), "Help", "", wx.ITEM_NORMAL)
         menu_help_about = ascii_Menu.Append(wx.NewId(), "About", "", wx.ITEM_NORMAL)
         self.ascii_menu.Append(ascii_Menu, "Help")
         self.SetMenuBar(self.ascii_menu)
-        
+
         # Bind Menu Items
         self.Bind(wx.EVT_MENU, self.MenuFileOpen, menu_file_open)
         self.Bind(wx.EVT_MENU, self.MenuFileSave, menu_file_save)
         self.Bind(wx.EVT_MENU, self.MenuFileRestart, menu_file_restart)
         self.Bind(wx.EVT_MENU, self.MenuFileExit, menu_file_exit)
         self.Bind(wx.EVT_MENU, self.MenuRunStart, menu_run_start)
-        
         self.Bind(wx.EVT_MENU, self.MenuViewImage, menu_view_image)
         self.Bind(wx.EVT_MENU, self.MenuViewIn, menu_view_in)
         self.Bind(wx.EVT_MENU, self.MenuViewOut, menu_view_out)
         self.Bind(wx.EVT_MENU, self.MenuViewReset, menu_view_reset)
-        
         self.Bind(wx.EVT_MENU, self.MenuToolsGrayscale, menu_tools_grayscale)
         self.Bind(wx.EVT_MENU, self.MenuToolsProportions, menu_tools_proportions)
         self.Bind(wx.EVT_MENU, self.MenuHelpHelp, menu_help_help)
         self.Bind(wx.EVT_MENU, self.MenuHelpAbout, menu_help_about)
-        
-        # Widgets
+
+        # GUI Widgets
         self.status = self.CreateStatusBar(1, 0)
         self.panel_1 = wx.Panel(self, -1)
         self.bitmap_button = wx.BitmapButton(self.panel_1, -1, self.ImagePreview)
@@ -102,26 +110,27 @@ class AsciiArtFrame(wx.Frame):
         self.slider_zoom = wx.Slider(self.panel_1, -1, 2, 2, 7, size=(120,-1), style=wx.SL_HORIZONTAL)
         self.et_asciiArea = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB |\
                                          wx.TE_MULTILINE | wx.HSCROLL | wx.TE_RICH | wx.TE_RICH2 | wx.TE_NOHIDESEL)
-        
+
         # Begin Methods
         self.SetProperties()
         self.MakeLayout()
         self.EnableHandlers()
 
     def SetProperties(self):
-        
+        """
+        Define the default properties for the application.
+        """
         self.SetTitle("Ascii Art Generator")
-        self.SetSize((1100, 700))
+        self.SetSize((1200, 600))
         self.status.SetStatusWidths([-1])
-        
-        # statusbar fields
+
+        # Statusbar message fields
         status_fields = ["New"]
         for i in range(len(status_fields)):
             self.status.SetStatusText(status_fields[i], i)
-        
+
         # Ascii Resources
         self.Ascii_Font = self.slider_zoom.GetValue()
-        
         self.bitmap_button.SetToolTipString("Click to open a new image")
         self.bitmap_button.SetSize(self.bitmap_button.GetBestSize())
         self.bitmap_button.SetDefault()
@@ -142,15 +151,15 @@ class AsciiArtFrame(wx.Frame):
         self.label_scale.SetToolTipString("Scroll slider to change the font size of the ascii characters")
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
         self.et_asciiArea.SetEditable(False)
-        
+
     def MakeLayout(self):
-        
+
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_4 = wx.BoxSizer(wx.VERTICAL)
         sizer_5 = wx.BoxSizer(wx.VERTICAL)
-        
+
         grid_settings = wx.GridSizer(6, 2, 0, 0)
         sizer_3.Add(self.bitmap_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 6)
         grid_settings.Add(self.label_grayscale, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
@@ -161,7 +170,7 @@ class AsciiArtFrame(wx.Frame):
         grid_settings.Add(self.et_height, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_settings.Add(self.label_width, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         grid_settings.Add(self.et_width, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
-        
+
         sizer_3.Add(grid_settings, 1, wx.EXPAND, 0)
         sizer_1.Add(self.static_line_1, 0, wx.EXPAND, 0)
         sizer_4.Add(self.b_start, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 15)
@@ -177,59 +186,59 @@ class AsciiArtFrame(wx.Frame):
         self.SetSizer(sizer_2)
         self.Layout()
         self.Centre()
-        
+
     #### --- DIALOG BOXES --- ####
     def InvalidInputDialog(self):
-        InvalidDialog = wx.MessageDialog(None, "You must enter a valid height and width.", 
+        InvalidDialog = wx.MessageDialog(None, "You must enter a valid height and width.",
                                          "Invalid Size", wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
         InvalidDialog.ShowModal()
         InvalidDialog.Destroy()
-    
+
     def NoImageDialog(self):
-        NoImageDialog = wx.MessageDialog(None, "You must open an image file first.", 
+        NoImageDialog = wx.MessageDialog(None, "You must open an image file first.",
                                          "Invalid Image", wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
         NoImageDialog.ShowModal()
         NoImageDialog.Destroy()
-    
+
     def InvalidImageDialog(self):
-        InvalidImageDialog = wx.MessageDialog(None, "The image you have selected is an invalid file.", 
+        InvalidImageDialog = wx.MessageDialog(None, "The image you have selected is an invalid file.",
                                          "Invalid File", wx.OK | wx.CENTER | wx.ICON_ERROR)
         InvalidImageDialog.ShowModal()
         InvalidImageDialog.Destroy()
-        
+
     def LargeSizeDialog(self):
-        LargeSizeDialog = wx.MessageDialog(None, "The ascii image may take a while to generate.\nDo you want to continue?", 
-                                           "Large Conversion Size", wx.YES_NO | wx.YES_DEFAULT | 
+        LargeSizeDialog = wx.MessageDialog(None, "The ascii image may take a while to generate.\nDo you want to continue?",
+                                           "Large Conversion Size", wx.YES_NO | wx.YES_DEFAULT |
                                            wx.CENTER | wx.ICON_INFORMATION)
         result = LargeSizeDialog.ShowModal()
         LargeSizeDialog.Destroy()
-        return result      
-      
+        return result
+
     def GiantSizeDialog(self):
-        GiantSizeDialog = wx.MessageDialog(None, "The program may freeze or even crash.\nDo you want to continue?", 
-                                           "Large Conversion Size", wx.YES_NO | wx.YES_DEFAULT | 
+        GiantSizeDialog = wx.MessageDialog(None, "The program may freeze or even crash.\nDo you want to continue?",
+                                           "Large Conversion Size", wx.YES_NO | wx.YES_DEFAULT |
                                            wx.CENTER | wx.ICON_INFORMATION)
         result = GiantSizeDialog.ShowModal()
         GiantSizeDialog.Destroy()
         return result
 
     def ShowSaveDialog(self):
-        ShowSaveDialog = wx.MessageDialog(None, "Your file has been successfully saved.", "File Saved", 
+        ShowSaveDialog = wx.MessageDialog(None, "Your file has been successfully saved.", "File Saved",
                                           wx.OK | wx.CENTER | wx.ICON_INFORMATION)
         ShowSaveDialog.ShowModal()
         ShowSaveDialog.Destroy()
 
     def EnableHandlers(self):
-        
+
         self.Bind(wx.EVT_BUTTON, self.CreateAscii, self.b_start)
         self.Bind(wx.EVT_BUTTON, self.OpenFileBrowser, self.bitmap_button)
         self.Bind(wx.EVT_SCROLL, self.SliderZoom, self.slider_zoom)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleGrayscale, self.tb_grayscale)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProportions, self.tb_dimension)
-        
+
     def MenuFileOpen(self, event):
         self.OpenFileBrowser(event)
-    
+
     def MenuFileSave(self, event):
         wildcard = "Text Files (*.txt)| *.txt"
         SaveDialog = wx.FileDialog(None, message="Save text as",
@@ -244,7 +253,7 @@ class AsciiArtFrame(wx.Frame):
                 self.ShowSaveDialog()
         except Exception:
             pass
-    
+
     def MenuFileRestart(self, event):
         self.ImageIsLoaded = False
         self.bitmap_button.SetBitmapLabel(self.blank_image)
@@ -252,10 +261,10 @@ class AsciiArtFrame(wx.Frame):
         self.et_asciiArea.Clear()
         self.et_height.Clear()
         self.et_width.Clear()
-    
+
     def MenuFileExit(self, event):
         self.Close()
-        
+
     def MenuViewImage(self, event):
         try:
             if self.ImageIsLoaded == True:
@@ -264,19 +273,19 @@ class AsciiArtFrame(wx.Frame):
                 self.NoImageDialog()
         except Exception:
             self.InvalidImageDialog()
-        
+
     def MenuViewIn(self, event):
         self.slider_zoom.SetValue(self.slider_zoom.GetValue()+1)
         self.SliderZoom(event)
-    
+
     def MenuViewOut(self, event):
         self.slider_zoom.SetValue(self.slider_zoom.GetValue()-1)
         self.SliderZoom(event)
-        
+
     def MenuViewReset(self, event):
         self.slider_zoom.SetValue(1)
         self.SliderZoom(event)
-        
+
     def MenuToolsGrayscale(self, event):
         if self.GrayscaleActive == False:
             self.GrayscaleActive = True
@@ -286,7 +295,7 @@ class AsciiArtFrame(wx.Frame):
             self.GrayscaleActive = False
             self.tb_grayscale.SetValue(False)
             self.ToggleGrayscale(event)
-        
+
     def MenuToolsProportions(self, event):
         if self.ProportionsActive == False:
             self.ProportionsActive = True
@@ -296,7 +305,7 @@ class AsciiArtFrame(wx.Frame):
             self.ProportionsActive = False
             self.tb_dimension.SetValue(False)
             self.ToggleProportions(event)
-    
+
     def MenuHelpHelp(self, event):
         help1 = ("First Time Users:\nStep 1:  Click on the preview box to open an image." +
                 "\nStep 2:  Click the Auto Proportion button or press (F4)." +
@@ -305,7 +314,7 @@ class AsciiArtFrame(wx.Frame):
                 )
         Help = wx.MessageDialog(None, help1, "Help", wx.ICON_QUESTION)
         Help.ShowModal()
-        
+
     def MenuHelpAbout(self, event):
         About = wx.AboutDialogInfo()
         About.SetName('Ascii Art Generator')
@@ -313,14 +322,19 @@ class AsciiArtFrame(wx.Frame):
         About.SetCopyright('(C) 2012 \tJorge Yau')
         About.SetDescription('Contact: \tcodenameyau@gmail.com')
         wx.AboutBox(About)
-        
+
     #### EVENT HANDLERS ####
-    
+
     def MenuRunStart(self, event):
         self.CreateAscii(event)
-    
+
     def OpenFileBrowser(self, event):
-        
+        """
+        Event handler for image button. Opens up a file browser to
+        load an image into memory for ascii conversion. Only accept
+        files in the wildcard string.
+        """
+
         wildcard = "Image Files |*.jpg;*.png;*.bmp|" \
                     "JPEG (*.jpg)|*.jpg|" \
                     "PNG (*.png)|*.png|" \
@@ -335,8 +349,8 @@ class AsciiArtFrame(wx.Frame):
                 self.ImagePath = filedialog.GetPath()
                 self.ImageIsLoaded = True
                 img = wx.Image(self.ImagePath)
-                
-                # Preview Image Resizer 
+
+                # Preview Image Resizer
                 if img.GetHeight() > img.GetWidth():
                     baseheight = 280
                     h_percent = (baseheight / float(img.GetHeight()))
@@ -345,7 +359,7 @@ class AsciiArtFrame(wx.Frame):
                     basewidth = 280
                     w_percent = (basewidth / float(img.GetWidth()))
                     baseheight = img.GetHeight() * w_percent
-                    
+
                 img = img.Rescale(basewidth, baseheight, wx.IMAGE_QUALITY_HIGH)
                 # Acquire original and grayscale version
                 self.ImageSource = img
@@ -358,64 +372,69 @@ class AsciiArtFrame(wx.Frame):
                 self.status.SetStatusText(self.ImagePath)
             else:
                 pass
-                
+
         except Exception:
             self.InvalidImageDialog()
         finally:
             filedialog.Destroy()
-        
+
     def CreateAscii(self, event):
-        # Default characters for luminosity
+        """
+        Defines the default characters for shading luminosity.
+        Function will create zonebounds for the luminosity and
+        then proceed to generate an ascii character from the matching
+        grayscale list.
+        """
         grayscale = [
                     " ",
                     " ",
                     ".",
-                    "'",
                     "`",
+                    ",",
                     ":",
                     ";",
-                    "-",
-                    "=",
-                    "+",
                     "l",
+                    "+",
+                    "=",
                     "I",
                     "J",
                     "C",
+                    "X",
                     "D",
-                    "B",
                     "H",
+                    "B",
                     "M"
                     ]
         # Use bisect class for luminosity values
         zonebounds = [15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255]
-            
+
         # Open image, convert to grayscale, and resize
         try:
             if self.ImageIsLoaded == False:
                 raise RuntimeError
             im = Image.open(self.ImagePath).convert("L")
-            
+
             # Auto Proportion
             if self.AutoProportion == True:
-                # Getting image text ratio to generate height and width 
+                # Getting image text ratio to generate height and width
                 text_w, text_h = self.et_asciiArea.GetClientSize()
-                img_w, img_h = im.size 
+                img_w, img_h = im.size
                 img_ratio = float(img_h)/float(img_w)
                 text_ratio = float(text_w)/float(text_h)
-                
+
                 text_h = int((text_h/3.0)*img_ratio*text_ratio)
                 text_w = int((text_w/2.0))
                 self.Ascii_Height = text_h
                 self.Ascii_Width  = text_w
-                
+
                 self.et_height.SetValue(str(text_h))
                 self.et_width.SetValue(str(text_w))
             # Take user's size input
             else:
                 self.Ascii_Height = int(self.et_height.GetValue())
                 self.Ascii_Width  = int(self.et_width.GetValue())
-            
-            
+
+            # Set size limit of maximum height and width
             size = self.Ascii_Height * self.Ascii_Width
             if size > 2000000:
                 if self.GiantSizeDialog() == wx.ID_NO:
@@ -423,9 +442,9 @@ class AsciiArtFrame(wx.Frame):
             elif size > 500000:
                 if self.LargeSizeDialog() == wx.ID_NO:
                     raise AssertionError
-                
+
             im = im.resize((self.Ascii_Width, self.Ascii_Height), Image.ANTIALIAS)
-            
+
             # working with pixels, build up string
             asciiText = ""
             for y in range(0,im.size[1]):
@@ -448,10 +467,17 @@ class AsciiArtFrame(wx.Frame):
             self.InvalidImageDialog()
 
     def SliderZoom(self, event):
+        """
+        Event Handler for the UI slider that controls zoom.
+        """
         self.Ascii_Font = self.slider_zoom.GetValue()
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
-        
+
     def ToggleGrayscale(self, event):
+        """
+        Event handler for grayscale button. Will take the preview image,
+        and create a new grayscale image. Old image will temporarily be replaced.
+        """
         if self.tb_grayscale.GetValue() == True:
             self.tb_grayscale.SetLabel("On")
             try:
@@ -467,28 +493,25 @@ class AsciiArtFrame(wx.Frame):
                 self.bitmap_button.SetBitmapLabel(self.ImagePreview)
             except Exception:
                 pass
-    
+
     def ToggleProportions(self, event):
+        """
+        Event handler that gets the window's current height and width.
+        It will automatically set the generated ascii text's width to
+        the current width of the window.
+        """
         if self.tb_dimension.GetValue() == True:
             self.tb_dimension.SetLabel("On")
             self.AutoProportion = True
             self.et_height.SetEditable(False)
             self.et_width.SetEditable(False)
-            
+
         elif self.tb_dimension.GetValue() == False:
             self.tb_dimension.SetLabel("Off")
             self.AutoProportion = False
             self.et_height.SetEditable(True)
             self.et_width.SetEditable(True)
 
-    def ToggleCustomCharacters(self, event):
-        if self.tb_custom.GetValue() == True:
-            self.tb_custom.SetLabel("On")
-            self.CustomCharacters = True
-        elif self.tb_custom.GetValue() == False:
-            self.tb_custom.SetLabel("Off")
-            self.CustomCharacters = False 
-    
 # end of class AsciiArtFrame
 
 if __name__ == "__main__":
