@@ -1,9 +1,7 @@
 """
 Program: Ascii Art Generator
 Email:   codenameyau@gmail.com
-Author:  Jorge Yau
 """
-
 import wx
 from PIL import Image
 import os
@@ -152,8 +150,8 @@ class AsciiArtFrame(wx.Frame):
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
         self.et_asciiArea.SetEditable(False)
 
-    def MakeLayout(self):
 
+    def MakeLayout(self):
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -187,7 +185,7 @@ class AsciiArtFrame(wx.Frame):
         self.Layout()
         self.Centre()
 
-    #### --- DIALOG BOXES --- ####
+    # DIALOG BOXES
     def InvalidInputDialog(self):
         InvalidDialog = wx.MessageDialog(None, "You must enter a valid height and width.",
                                          "Invalid Size", wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
@@ -378,6 +376,7 @@ class AsciiArtFrame(wx.Frame):
         finally:
             filedialog.Destroy()
 
+
     def CreateAscii(self, event):
         """
         Defines the default characters for shading luminosity.
@@ -406,7 +405,7 @@ class AsciiArtFrame(wx.Frame):
                     "M"
                     ]
         # Use bisect class for luminosity values
-        zonebounds = [15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255]
+        zonebounds = [x for x in range(15, 256, 15)]
 
         # Open image, convert to grayscale, and resize
         try:
@@ -421,7 +420,6 @@ class AsciiArtFrame(wx.Frame):
                 img_w, img_h = im.size
                 img_ratio = float(img_h)/float(img_w)
                 text_ratio = float(text_w)/float(text_h)
-
                 text_h = int((text_h/3.0)*img_ratio*text_ratio)
                 text_w = int((text_w/2.0))
                 self.Ascii_Height = text_h
@@ -466,12 +464,14 @@ class AsciiArtFrame(wx.Frame):
         except Exception:
             self.InvalidImageDialog()
 
+
     def SliderZoom(self, event):
         """
         Event Handler for the UI slider that controls zoom.
         """
         self.Ascii_Font = self.slider_zoom.GetValue()
         self.et_asciiArea.SetFont(wx.Font(self.Ascii_Font, wx.MODERN, wx.NORMAL, wx.NORMAL))
+
 
     def ToggleGrayscale(self, event):
         """
@@ -494,6 +494,7 @@ class AsciiArtFrame(wx.Frame):
             except Exception:
                 pass
 
+
     def ToggleProportions(self, event):
         """
         Event handler that gets the window's current height and width.
@@ -512,8 +513,8 @@ class AsciiArtFrame(wx.Frame):
             self.et_height.SetEditable(True)
             self.et_width.SetEditable(True)
 
-# end of class AsciiArtFrame
 
+# end of class AsciiArtFrame
 if __name__ == "__main__":
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()

@@ -1,4 +1,8 @@
 Description:
 ============
-This is a python GUI application which generates
-ascii text art from an image file.
+This is a project I made in my sophmore year of college after learning about GUI applications.
+This application generates ascii art from an image file.
+
+Running:
+========
+`python ascii.py`
